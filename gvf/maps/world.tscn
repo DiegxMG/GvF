@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://dxeqbsv0p0g8v"]
+
+[ext_resource type="Script" uid="uid://dw36aimwvxhxs" path="res://systems/infinite_ground.gd" id="1_dyenr"]
+[ext_resource type="PackedScene" uid="uid://cerkko1iomlsf" path="res://entities/player/player.tscn" id="2_e0ubd"]
+
+[node name="World" type="Node2D" unique_id=29999533]
+
+[node name="Ground" type="Node2D" parent="." unique_id=529485342]
+script = ExtResource("1_dyenr")
+
+[node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]
