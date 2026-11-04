@@ -2,10 +2,19 @@
 
 [ext_resource type="Script" uid="uid://dw36aimwvxhxs" path="res://systems/infinite_ground.gd" id="1_dyenr"]
 [ext_resource type="PackedScene" uid="uid://cerkko1iomlsf" path="res://entities/player/player.tscn" id="2_e0ubd"]
+[ext_resource type="Script" uid="uid://cssg1xsmi6yjh" path="res://entities/enemies/enemy_manager.gd" id="2_uds71"]
+[ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="3_41f5y"]
+[ext_resource type="Resource" uid="uid://duikrgtgl3m03" path="res://resources/stats_enemies/ghost_slow_day.tres" id="4_0n1be"]
+[ext_resource type="Resource" uid="uid://ucgy8sxpcwix" path="res://resources/stats_enemies/ghost_fast_day.tres" id="5_q1kd2"]
 
 [node name="World" type="Node2D" unique_id=29999533]
 
 [node name="Ground" type="Node2D" parent="." unique_id=529485342]
 script = ExtResource("1_dyenr")
+
+[node name="EnemyManager" type="Node2D" parent="." unique_id=547259314 node_paths=PackedStringArray("player")]
+script = ExtResource("2_uds71")
+player = NodePath("../Player")
+enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2")])
 
 [node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]

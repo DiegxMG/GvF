@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3 uid="uid://duikrgtgl3m03"]
+
+[ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="1_uqet2"]
+
+[resource]
+script = ExtResource("1_uqet2")
+display_name = "Fantasma lento (día)"
+size = 32.0
+color = Color(0.6, 0.8, 1, 1)
+spawn_weight = 3.0
+metadata/_custom_type_script = "uid://bxe00x1cyqlbg"
