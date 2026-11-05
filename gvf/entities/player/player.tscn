@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://kk0ifug71d1x" path="res://entities/player/player.gd" id="1_abrql"]
 [ext_resource type="Script" uid="uid://b14br38bv5ac2" path="res://entities/player/player_visual.gd" id="2_sglur"]
+[ext_resource type="Script" uid="uid://bheshtk0r6yx8" path="res://entities/player/player_health.gd" id="3_bls4j"]
+[ext_resource type="Script" uid="uid://cdctqfgsapwyi" path="res://entities/player/claw_attack.gd" id="4_fkugw"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_oi1du"]
 radius = 12.0
@@ -16,3 +18,9 @@ shape = SubResource("CircleShape2D_oi1du")
 script = ExtResource("2_sglur")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=901115290]
+
+[node name="PlayerHealth" type="Node2D" parent="." unique_id=455884078]
+script = ExtResource("3_bls4j")
+
+[node name="ClawAttack" type="Node2D" parent="." unique_id=69435150]
+script = ExtResource("4_fkugw")

@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="3_41f5y"]
 [ext_resource type="Resource" uid="uid://duikrgtgl3m03" path="res://resources/stats_enemies/ghost_slow_day.tres" id="4_0n1be"]
 [ext_resource type="Resource" uid="uid://ucgy8sxpcwix" path="res://resources/stats_enemies/ghost_fast_day.tres" id="5_q1kd2"]
+[ext_resource type="Script" uid="uid://g65qk7sbksaj" path="res://ui/game_over.gd" id="7_0n1be"]
 
 [node name="World" type="Node2D" unique_id=29999533]
 
@@ -18,3 +19,6 @@ player = NodePath("../Player")
 enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2")])
 
 [node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]
+
+[node name="GameOver" type="CanvasLayer" parent="." unique_id=1724486597]
+script = ExtResource("7_0n1be")
