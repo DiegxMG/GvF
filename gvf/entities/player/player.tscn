@@ -11,6 +11,7 @@ radius = 12.0
 
 [node name="Player" type="CharacterBody2D" unique_id=1565919614]
 script = ExtResource("1_abrql")
+speed = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1914694488]
 shape = SubResource("CircleShape2D_oi1du")
@@ -20,8 +21,8 @@ script = ExtResource("2_sglur")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Visual" unique_id=273157835]
 sprite_frames = ExtResource("3_fkugw")
-animation = &"death_left"
-frame_progress = 0.3609301
+animation = &"death_up"
+frame_progress = 0.9712168
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=901115290]
 

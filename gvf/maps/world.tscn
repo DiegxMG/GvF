@@ -19,6 +19,7 @@ player = NodePath("../Player")
 enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2")])
 
 [node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]
+speed = 250.0
 
 [node name="GameOver" type="CanvasLayer" parent="." unique_id=1724486597]
 script = ExtResource("7_0n1be")
