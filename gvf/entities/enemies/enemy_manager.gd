@@ -248,11 +248,11 @@ func _draw() -> void:
 				continue
 
 	
-# Dibujo original para los demás enemigos.
-draw_rect(
-    Rect2(p - Vector2(s, s) * 0.5, Vector2(s, s)),
-    color
-)
+	# Dibujo original para los demás enemigos.
+		draw_rect(
+			Rect2(p - Vector2(s, s) * 0.5, Vector2(s, s)),
+			color
+		)
 
 
 # --- API para armas, XP, etc. -------------------------------------------------

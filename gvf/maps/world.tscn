@@ -28,14 +28,6 @@ script = ExtResource("2_uds71")
 fantasma_lento_frames = ExtResource("3_q1kd2")
 player = NodePath("../Player")
 enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2"), ExtResource("6_op0be"), ExtResource("7_w3kvc")])
-max_enemies = null
-start_spawn_rate = null
-spawn_rate_growth = null
-max_spawn_rate = null
-health_growth_per_minute = null
-spawn_margin = null
-despawn_factor = null
-player_radius = null
 
 [node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]
 speed = 250.0
