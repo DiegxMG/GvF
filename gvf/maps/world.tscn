@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dw36aimwvxhxs" path="res://systems/infinite_ground.gd" id="1_dyenr"]
 [ext_resource type="PackedScene" uid="uid://cerkko1iomlsf" path="res://entities/player/player.tscn" id="2_e0ubd"]
+[ext_resource type="Script" uid="uid://p540118v36ly" path="res://entities/pickups/xp_orb_manager.gd" id="2_h6ah0"]
 [ext_resource type="Script" uid="uid://cssg1xsmi6yjh" path="res://entities/enemies/enemy_manager.gd" id="2_uds71"]
 [ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="3_41f5y"]
 [ext_resource type="Resource" uid="uid://duikrgtgl3m03" path="res://resources/stats_enemies/ghost_slow_day.tres" id="4_0n1be"]
@@ -10,12 +11,16 @@
 [ext_resource type="Script" uid="uid://g65qk7sbksaj" path="res://ui/game_over.gd" id="7_0n1be"]
 [ext_resource type="Resource" uid="uid://b76svlwc4j6oi" path="res://resources/stats_enemies/ghost_fast_night.tres" id="7_w3kvc"]
 [ext_resource type="Script" uid="uid://1axuke333eyj" path="res://systems/day_night_tint.gd" id="10_dsm5r"]
-[ext_resource type="Script" uid="uid://or16vj812y6e" path="res://ui/hud/hud_clock.gd" id="11_hnius"]
+[ext_resource type="Script" uid="uid://c6xirb8auqe33" path="res://ui/hud/hud_top_bar.gd" id="12_ntnhp"]
+[ext_resource type="Script" uid="uid://cvontvgr1603k" path="res://ui/TouchJoystick.gd" id="13_c4v46"]
 
 [node name="World" type="Node2D" unique_id=29999533]
 
 [node name="Ground" type="Node2D" parent="." unique_id=529485342]
 script = ExtResource("1_dyenr")
+
+[node name="XpOrbManager" type="Node2D" parent="." unique_id=713313987]
+script = ExtResource("2_h6ah0")
 
 [node name="EnemyManager" type="Node2D" parent="." unique_id=547259314 node_paths=PackedStringArray("player")]
 script = ExtResource("2_uds71")
@@ -35,8 +40,11 @@ player_radius = null
 [node name="DayNightTint" type="CanvasModulate" parent="." unique_id=923894501]
 script = ExtResource("10_dsm5r")
 
-[node name="HudClock" type="CanvasLayer" parent="." unique_id=751068367]
-script = ExtResource("11_hnius")
+[node name="HudTopBar" type="CanvasLayer" parent="." unique_id=53187863]
+script = ExtResource("12_ntnhp")
+
+[node name="TouchJoystick" type="CanvasLayer" parent="." unique_id=1008219835]
+script = ExtResource("13_c4v46")
 
 [node name="GameOver" type="CanvasLayer" parent="." unique_id=1724486597]
 script = ExtResource("7_0n1be")
