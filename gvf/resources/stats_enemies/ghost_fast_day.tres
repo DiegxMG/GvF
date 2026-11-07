@@ -11,5 +11,6 @@ contact_damage = 3.0
 xp_value = 2
 size = 20.0
 color = Color(1, 0.4, 0.4, 1)
+active_time = 1
 appears_at_time = 30.0
 metadata/_custom_type_script = "uid://bxe00x1cyqlbg"

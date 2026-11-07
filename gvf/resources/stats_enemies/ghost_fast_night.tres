@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3 uid="uid://b76svlwc4j6oi"]
+
+[ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="1_weyhg"]
+
+[resource]
+script = ExtResource("1_weyhg")
+display_name = "Fantasma rápido dia"
+max_health = 8.0
+speed = 170.0
+xp_value = 3
+size = 22.0
+color = Color(0.4, 1, 0.8, 1)
+active_time = 2
+spawn_weight = 1.5
+appears_at_time = 30.0
+metadata/_custom_type_script = "uid://bxe00x1cyqlbg"
