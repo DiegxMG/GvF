@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://cerkko1iomlsf" path="res://entities/player/player.tscn" id="2_e0ubd"]
 [ext_resource type="Script" uid="uid://cssg1xsmi6yjh" path="res://entities/enemies/enemy_manager.gd" id="2_uds71"]
 [ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="3_41f5y"]
+[ext_resource type="SpriteFrames" uid="uid://cxjylelyk7i3c" path="res://assets/sprites/fantasmas/fantasma_lento_dia/fantasma_lento_frames.tres" id="3_q1kd2"]
 [ext_resource type="Resource" uid="uid://duikrgtgl3m03" path="res://resources/stats_enemies/ghost_slow_day.tres" id="4_0n1be"]
 [ext_resource type="Resource" uid="uid://ucgy8sxpcwix" path="res://resources/stats_enemies/ghost_fast_day.tres" id="5_q1kd2"]
 [ext_resource type="Script" uid="uid://g65qk7sbksaj" path="res://ui/game_over.gd" id="7_0n1be"]
@@ -15,6 +16,7 @@ script = ExtResource("1_dyenr")
 
 [node name="EnemyManager" type="Node2D" parent="." unique_id=547259314 node_paths=PackedStringArray("player")]
 script = ExtResource("2_uds71")
+fantasma_lento_frames = ExtResource("3_q1kd2")
 player = NodePath("../Player")
 enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2")])
 
