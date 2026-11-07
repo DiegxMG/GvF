@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://bheshtk0r6yx8" path="res://entities/player/player_health.gd" id="3_bls4j"]
 [ext_resource type="SpriteFrames" uid="uid://dd5i7ufy4yk7d" path="res://assets/sprites/gato/gato_frames.tres" id="3_fkugw"]
 [ext_resource type="Script" uid="uid://cdctqfgsapwyi" path="res://entities/player/claw_attack.gd" id="4_fkugw"]
+[ext_resource type="Script" uid="uid://dhs3euhdr5iw7" path="res://entities/player/player_experience.gd" id="5_fkugw"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_oi1du"]
 radius = 12.0
@@ -31,3 +32,6 @@ script = ExtResource("3_bls4j")
 
 [node name="ClawAttack" type="Node2D" parent="." unique_id=69435150]
 script = ExtResource("4_fkugw")
+
+[node name="PlayerExperience" type="Node2D" parent="." unique_id=1452983709]
+script = ExtResource("5_fkugw")
