@@ -1,5 +1,6 @@
 class_name ClawAttack
 extends Node2D
+
 ## Ataque principal del gato: un zarpazo automático en abanico, de corto alcance.
 ## Va como nodo hijo del Player. No usa sprites: las tres marcas de garra
 ## se dibujan por código. El daño se calcula con matemáticas (distancia y
@@ -56,10 +57,13 @@ func _physics_process(delta: float) -> void:
 	_swipe(dir)
 
 
+
 func _swipe(dir: Vector2) -> void:
 	_cooldown_left = cooldown
 	_anim_time = 0.0
 	rotation = dir.angle()
+
+	
 	enemy_manager.damage_in_arc(
 		global_position, dir, reach, deg_to_rad(arc_degrees) * 0.5, damage, knockback)
 	queue_redraw()

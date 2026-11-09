@@ -5,6 +5,9 @@ extends Node2D
 ## Los arreglos se reservan una sola vez (pool), así que no hay
 ## instanciar/liberar nodos mientras se juega.
 
+# Animaciones del Fantasma Lento de Día
+@export var fantasma_lento_frames: SpriteFrames
+
 ## Se emite al morir un enemigo (para soltar XP más adelante).
 signal enemy_killed(position: Vector2, xp: int)
 
@@ -209,6 +212,8 @@ func _damage_player(amount: float) -> void:
 
 # --- Dibujo -----------------------------------------------------------------
 
+
+
 func _draw() -> void:
 	if player == null:
 		return
@@ -216,17 +221,38 @@ func _draw() -> void:
 	var fading := _purge_left > 0.0
 	var center := player.global_position
 	var view_half := get_viewport_rect().size * 0.5 + Vector2(64.0, 64.0)
+
 	for i in _count:
 		var p := _pos[i]
-		# Solo dibujamos lo que está en pantalla.
+
+		# Solo dibujamos enemigos cercanos a la pantalla.
 		if absf(p.x - center.x) > view_half.x or absf(p.y - center.y) > view_half.y:
 			continue
+
 		var stats := enemy_types[_type[i]]
 		var color := stats.color
 		if fading and not _matches_phase(stats, night):
 			color.a = 0.35
 		var s := stats.size
-		draw_rect(Rect2(p - Vector2(s, s) * 0.5, Vector2(s, s)), color)
+
+		# Sprite del Fantasma Lento de Día.
+		if _type[i] == 0 and fantasma_lento_frames != null:
+			var texture := fantasma_lento_frames.get_frame_texture("move_down", 0)
+
+			if texture != null:
+				# Tamaño visual de 64 x 64 píxeles.
+				var sprite_size := Vector2(64.0, 64.0)
+				var rect := Rect2(p - sprite_size * 0.5, sprite_size)
+
+				draw_texture_rect(texture, rect, false)
+				continue
+
+	
+	# Dibujo original para los demás enemigos.
+		draw_rect(
+			Rect2(p - Vector2(s, s) * 0.5, Vector2(s, s)),
+			color
+		)
 
 
 # --- API para armas, XP, etc. -------------------------------------------------
