@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bluhs8hnela03" path="res://ui/main_menu/MainMenu.gd" id="1_h7g2k"]
 [ext_resource type="Texture2D" uid="uid://duuonp3whb5rx" path="res://assets/menu/fondo_menu.png" id="2_blw3s"]
 [ext_resource type="Texture2D" uid="uid://ijknkx8cmopt" path="res://assets/menu/logo_gvf.png" id="3_x85v6"]
+[ext_resource type="SpriteFrames" uid="uid://dd5i7ufy4yk7d" path="res://assets/sprites/gato/gato_frames.tres" id="4_u1tth"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_20cct"]
 bg_color = Color(0.34117648, 0.1882353, 0.6392157, 1)
@@ -94,3 +95,12 @@ mouse_filter = 2
 texture = ExtResource("3_x85v6")
 expand_mode = 1
 stretch_mode = 6
+
+[node name="MenuCat" type="AnimatedSprite2D" parent="." unique_id=474755307]
+texture_filter = 1
+position = Vector2(360, 900)
+scale = Vector2(2, 2)
+sprite_frames = ExtResource("4_u1tth")
+animation = &"move_right"
+autoplay = "move_right"
+centered = false
