@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bdt3p8jknj8nx"]
+
+[ext_resource type="SpriteFrames" uid="uid://cxjylelyk7i3c" path="res://assets/sprites/fantasmas/fantasma_lento_dia/fantasma_lento_frames.tres" id="1_ttj8u"]
+
+[node name="Node2D" type="Node2D" unique_id=276509935]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=386649807]
+sprite_frames = ExtResource("1_ttj8u")
+animation = &"move_right"
