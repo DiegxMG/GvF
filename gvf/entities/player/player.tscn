@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://kk0ifug71d1x" path="res://entities/player/player.gd" id="1_abrql"]
 [ext_resource type="Script" uid="uid://b14br38bv5ac2" path="res://entities/player/player_visual.gd" id="2_sglur"]
 [ext_resource type="Script" uid="uid://bheshtk0r6yx8" path="res://entities/player/player_health.gd" id="3_bls4j"]
+[ext_resource type="SpriteFrames" uid="uid://dd5i7ufy4yk7d" path="res://assets/sprites/gato/gato_frames.tres" id="3_fkugw"]
 [ext_resource type="Script" uid="uid://cdctqfgsapwyi" path="res://entities/player/claw_attack.gd" id="4_fkugw"]
 [ext_resource type="Script" uid="uid://dhs3euhdr5iw7" path="res://entities/player/player_experience.gd" id="5_fkugw"]
 
@@ -11,12 +12,18 @@ radius = 12.0
 
 [node name="Player" type="CharacterBody2D" unique_id=1565919614]
 script = ExtResource("1_abrql")
+speed = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1914694488]
 shape = SubResource("CircleShape2D_oi1du")
 
 [node name="Visual" type="Node2D" parent="." unique_id=1982811891]
 script = ExtResource("2_sglur")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Visual" unique_id=273157835]
+sprite_frames = ExtResource("3_fkugw")
+animation = &"death_up"
+frame_progress = 0.9712168
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=901115290]
 

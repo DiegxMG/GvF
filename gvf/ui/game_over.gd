@@ -55,7 +55,11 @@ func _on_enemy_killed(_position: Vector2, _xp: int) -> void:
 	_kills += 1
 
 
+
 func _on_player_died() -> void:
+	# Esperar a que el gato reproduzca su animación de muerte.
+	await get_tree().create_timer(0.8).timeout
+
 	var minutes := int(_time / 60.0)
 	var seconds := int(_time) % 60
 	_label.text = "GAME OVER\n\nSobreviviste %02d:%02d\nEnemigos eliminados: %d\n\nToca para reiniciar" % [
@@ -63,6 +67,7 @@ func _on_player_died() -> void:
 	_shown_at_ms = Time.get_ticks_msec()
 	visible = true
 	get_tree().paused = true
+
 
 
 func _input(event: InputEvent) -> void:

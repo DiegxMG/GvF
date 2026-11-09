@@ -6,6 +6,7 @@ extends Node2D
 
 signal health_changed(current: float, maximum: float)
 signal died
+signal damaged
 
 @export var max_health: float = 100.0
 ## Segundos sin recibir daño después de un golpe.
@@ -39,6 +40,7 @@ func take_damage(amount: float) -> void:
 	_invuln_left = invulnerability_time
 	_set_tint(Color(1.0, 0.45, 0.45))
 	health_changed.emit(current_health, max_health)
+	damaged.emit()
 	queue_redraw()
 	if current_health <= 0.0:
 		_dead = true
