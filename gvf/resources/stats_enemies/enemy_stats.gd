@@ -14,6 +14,12 @@ enum ActiveTime { ALWAYS, DAY, NIGHT }
 @export var size: float = 28.0
 @export var color: Color = Color.WHITE
 
+@export_group("Monedas")
+## Probabilidad (de 0 a 1) de soltar una moneda al morir. 0.05 = 5 %.
+@export_range(0.0, 1.0, 0.001) var coin_chance: float = 0.02
+## Valor base de la moneda que suelta.
+@export var coin_value: int = 1
+
 @export_group("Aparición")
 ## ALWAYS = todo el tiempo, DAY = solo de día, NIGHT = solo de noche.
 @export var active_time: ActiveTime = ActiveTime.ALWAYS

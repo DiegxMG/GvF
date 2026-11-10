@@ -2,9 +2,14 @@ class_name HudTopBar
 extends CanvasLayer
 ## Barra superior del juego, al estilo de Vampire Survivors: una franja negra
 ## semitransparente con la barra de experiencia y el nivel, el tiempo de
-## partida y el día/noche. Debajo, a la izquierda, queda reservado un espacio
-## (items_area) para mostrar los objetos del jugador más adelante.
-## Reemplaza al reloj provisional (HudClock). Se construye solo, por código.
+## partida, el día/noche y los contadores de enemigos eliminados y monedas.
+## A la izquierda queda reservado un espacio (items_area) para mostrar los
+## objetos del jugador más adelante. Se construye solo, por código.
+
+## Símbolos provisionales de los contadores. Más adelante se reemplazan por
+## iconos (una calavera y una moneda).
+const ICON_KILLS := "X"
+const ICON_COINS := "M"
 
 @export var bar_height: float = 112.0
 @export var background_color: Color = Color(0.0, 0.0, 0.0, 0.45)
@@ -19,7 +24,8 @@ var _xp_bar: ProgressBar
 var _level_label: Label
 var _time_label: Label
 var _phase_label: Label
-var _levelup_label: Label
+var _kills_label: Label
+var _coins_label: Label
 
 
 func _ready() -> void:
@@ -74,6 +80,10 @@ func _ready() -> void:
 	_phase_label.offset_top = 80.0
 	_phase_label.offset_bottom = 106.0
 
+	# Contadores a la derecha: enemigos eliminados y monedas
+	_kills_label = _make_counter(root, 38.0, Color(0.95, 0.95, 0.95))
+	_coins_label = _make_counter(root, 72.0, Color(1.0, 0.85, 0.30))
+
 	# Espacio reservado para los objetos
 	items_area = Control.new()
 	items_area.name = "ItemsArea"
@@ -82,28 +92,27 @@ func _ready() -> void:
 	items_area.position = Vector2(8.0, 40.0)
 	items_area.size = Vector2(200.0, 64.0)
 
-	# Aviso al subir de nivel
-	_levelup_label = _make_label(40)
-	_levelup_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_levelup_label.modulate.a = 0.0
-	root.add_child(_levelup_label)
-	_levelup_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_levelup_label.offset_left = -200.0
-	_levelup_label.offset_right = 200.0
-	_levelup_label.offset_top = 140.0
-	_levelup_label.offset_bottom = 190.0
-
+	_on_kills_changed(0)
+	_on_coins_changed(0)
 	_connect_signals.call_deferred()
 
 
 func _connect_signals() -> void:
 	var xp := get_tree().get_first_node_in_group("player_experience") as PlayerExperience
-	if xp == null:
+	if xp != null:
+		xp.xp_changed.connect(_on_xp_changed)
+		_on_xp_changed(xp.current_xp, xp.xp_needed(), xp.level)
+	else:
 		push_warning("HudTopBar: no se encontró PlayerExperience en el jugador.")
-		return
-	xp.xp_changed.connect(_on_xp_changed)
-	xp.leveled_up.connect(_on_leveled_up)
-	_on_xp_changed(xp.current_xp, xp.xp_needed(), xp.level)
+
+	var run := get_tree().get_first_node_in_group("run_stats") as RunStats
+	if run != null:
+		run.kills_changed.connect(_on_kills_changed)
+		run.coins_changed.connect(_on_coins_changed)
+		_on_kills_changed(run.kills)
+		_on_coins_changed(run.coins)
+	else:
+		push_warning("HudTopBar: no se encontró RunStats en el mundo.")
 
 
 func _process(_delta: float) -> void:
@@ -124,11 +133,25 @@ func _on_xp_changed(current: int, needed: int, level: int) -> void:
 	_level_label.text = "NV. %d" % level
 
 
-func _on_leveled_up(new_level: int) -> void:
-	_levelup_label.text = "¡NIVEL %d!" % new_level
-	_levelup_label.modulate.a = 1.0
-	var tween := create_tween()
-	tween.tween_property(_levelup_label, "modulate:a", 0.0, 1.2)
+func _on_kills_changed(kills: int) -> void:
+	_kills_label.text = "%s: %d" % [ICON_KILLS, kills]
+
+
+func _on_coins_changed(coins: int) -> void:
+	_coins_label.text = "%s: %d" % [ICON_COINS, coins]
+
+
+func _make_counter(root: Control, top: float, color: Color) -> Label:
+	var label := _make_label(26)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	label.add_theme_color_override("font_color", color)
+	root.add_child(label)
+	label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	label.offset_left = -170.0
+	label.offset_right = -12.0
+	label.offset_top = top
+	label.offset_bottom = top + 32.0
+	return label
 
 
 func _make_label(font_size: int) -> Label:

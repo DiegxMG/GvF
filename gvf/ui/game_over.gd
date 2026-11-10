@@ -2,6 +2,7 @@ class_name GameOver
 extends CanvasLayer
 ## Pantalla de Game Over. Se crea sola por código (no necesita escena de UI).
 ## Se conecta a la vida del jugador y al EnemyManager buscándolos por grupos.
+## Muestra tiempo, nivel alcanzado, enemigos eliminados y monedas.
 
 var _label: Label
 var _kills: int = 0
@@ -55,19 +56,22 @@ func _on_enemy_killed(_position: Vector2, _xp: int) -> void:
 	_kills += 1
 
 
-
 func _on_player_died() -> void:
-	# Esperar a que el gato reproduzca su animación de muerte.
-	await get_tree().create_timer(0.8).timeout
-
 	var minutes := int(_time / 60.0)
 	var seconds := int(_time) % 60
-	_label.text = "GAME OVER\n\nSobreviviste %02d:%02d\nEnemigos eliminados: %d\n\nToca para reiniciar" % [
-		minutes, seconds, _kills]
+	var level := 1
+	var coins := 0
+	var xp_node := get_tree().get_first_node_in_group("player_experience") as PlayerExperience
+	if xp_node != null:
+		level = xp_node.level
+	var run := get_tree().get_first_node_in_group("run_stats") as RunStats
+	if run != null:
+		coins = run.coins
+	_label.text = "GAME OVER\n\nSobreviviste %02d:%02d\nNivel alcanzado: %d\nEnemigos eliminados: %d\nMonedas: %d\n\nToca para reiniciar" % [
+		minutes, seconds, level, _kills, coins]
 	_shown_at_ms = Time.get_ticks_msec()
 	visible = true
 	get_tree().paused = true
-
 
 
 func _input(event: InputEvent) -> void:

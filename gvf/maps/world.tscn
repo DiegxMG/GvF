@@ -5,15 +5,18 @@
 [ext_resource type="Script" uid="uid://p540118v36ly" path="res://entities/pickups/xp_orb_manager.gd" id="2_h6ah0"]
 [ext_resource type="Script" uid="uid://cssg1xsmi6yjh" path="res://entities/enemies/enemy_manager.gd" id="2_uds71"]
 [ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="3_41f5y"]
-[ext_resource type="SpriteFrames" uid="uid://cxjylelyk7i3c" path="res://assets/sprites/fantasmas/fantasma_lento_dia/fantasma_lento_frames.tres" id="3_q1kd2"]
 [ext_resource type="Resource" uid="uid://duikrgtgl3m03" path="res://resources/stats_enemies/ghost_slow_day.tres" id="4_0n1be"]
+[ext_resource type="SpriteFrames" uid="uid://cxjylelyk7i3c" path="res://assets/sprites/fantasmas/fantasma_lento_dia/fantasma_lento_frames.tres" id="4_qc5wv"]
 [ext_resource type="Resource" uid="uid://ucgy8sxpcwix" path="res://resources/stats_enemies/ghost_fast_day.tres" id="5_q1kd2"]
 [ext_resource type="Resource" uid="uid://cfk6i22mgcks7" path="res://resources/stats_enemies/ghost_slow_night.tres" id="6_op0be"]
 [ext_resource type="Script" uid="uid://g65qk7sbksaj" path="res://ui/game_over.gd" id="7_0n1be"]
 [ext_resource type="Resource" uid="uid://b76svlwc4j6oi" path="res://resources/stats_enemies/ghost_fast_night.tres" id="7_w3kvc"]
 [ext_resource type="Script" uid="uid://1axuke333eyj" path="res://systems/day_night_tint.gd" id="10_dsm5r"]
+[ext_resource type="Script" uid="uid://clukm26uygtuv" path="res://ui/damage_numbers.gd" id="10_qo83i"]
 [ext_resource type="Script" uid="uid://c6xirb8auqe33" path="res://ui/hud/hud_top_bar.gd" id="12_ntnhp"]
+[ext_resource type="Script" uid="uid://bykype2r8cifu" path="res://systems/run_stats.gd" id="12_qc5wv"]
 [ext_resource type="Script" uid="uid://cvontvgr1603k" path="res://ui/TouchJoystick.gd" id="13_c4v46"]
+[ext_resource type="Script" uid="uid://bf5blok2tn2o0" path="res://ui/upgrade_menu.gd" id="15_vj61e"]
 
 [node name="World" type="Node2D" unique_id=29999533]
 
@@ -22,24 +25,46 @@ script = ExtResource("1_dyenr")
 
 [node name="XpOrbManager" type="Node2D" parent="." unique_id=713313987]
 script = ExtResource("2_h6ah0")
+collect_radius = null
+magnet_radius = null
+pull_start_speed = null
+pull_acceleration = null
+pull_max_speed = null
+tier_colors = null
+base_radius = null
+radius_per_tier = null
 
 [node name="EnemyManager" type="Node2D" parent="." unique_id=547259314 node_paths=PackedStringArray("player")]
 script = ExtResource("2_uds71")
-fantasma_lento_frames = ExtResource("3_q1kd2")
+fantasma_lento_frames = ExtResource("4_qc5wv")
 player = NodePath("../Player")
 enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2"), ExtResource("6_op0be"), ExtResource("7_w3kvc")])
 
 [node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]
 speed = 250.0
 
+[node name="DamageNumbers" type="Node2D" parent="." unique_id=381248073]
+script = ExtResource("10_qo83i")
+
 [node name="DayNightTint" type="CanvasModulate" parent="." unique_id=923894501]
 script = ExtResource("10_dsm5r")
 
+[node name="RunStats" type="Node" parent="." unique_id=996216756]
+script = ExtResource("12_qc5wv")
+
 [node name="HudTopBar" type="CanvasLayer" parent="." unique_id=53187863]
 script = ExtResource("12_ntnhp")
+bar_height = null
+background_color = null
+xp_fill_color = null
+xp_back_color = null
+xp_border_color = null
 
 [node name="TouchJoystick" type="CanvasLayer" parent="." unique_id=1008219835]
 script = ExtResource("13_c4v46")
+
+[node name="UpgradeMenu" type="CanvasLayer" parent="." unique_id=1818500524]
+script = ExtResource("15_vj61e")
 
 [node name="GameOver" type="CanvasLayer" parent="." unique_id=1724486597]
 script = ExtResource("7_0n1be")
