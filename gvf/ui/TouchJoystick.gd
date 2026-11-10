@@ -16,6 +16,9 @@ extends CanvasLayer
 @export_range(0.0, 0.9) var dead_zone: float = 0.15
 ## Los toques por encima de esta altura se ignoran (zona de la barra superior).
 @export var ignore_top: float = 120.0
+## Si es true, el centro del joystick sigue al dedo cuando se aleja demasiado.
+## Con false (lo normal) el centro queda FIJO donde se puso el dedo al empezar.
+@export var follow_finger: bool = false
 
 @export_group("Acciones")
 @export var action_left: StringName = &"ui_left"
@@ -79,11 +82,11 @@ func _start(index: int, pos: Vector2) -> void:
 
 
 func _move(pos: Vector2) -> void:
-	var offset := pos - _origin
-	var dist := offset.length()
-	# Si el dedo se aleja más de lo permitido, el joystick lo sigue.
-	if dist > max_distance:
-		_origin += offset / dist * (dist - max_distance)
+	if follow_finger:
+		var offset := pos - _origin
+		var dist := offset.length()
+		if dist > max_distance:
+			_origin += offset / dist * (dist - max_distance)
 	_current = pos
 	_update_output()
 	_ui.queue_redraw()

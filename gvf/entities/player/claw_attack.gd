@@ -1,15 +1,17 @@
 class_name ClawAttack
 extends Node2D
-
 ## Ataque principal del gato: un zarpazo automático en abanico, de corto alcance.
 ## Va como nodo hijo del Player. No usa sprites: las tres marcas de garra
 ## se dibujan por código. El daño se calcula con matemáticas (distancia y
 ## ángulo), sin colisiones físicas.
+## Las mejoras de PlayerStats modifican el daño y la velocidad de ataque.
 
 @export_group("Daño")
 @export var damage: float = 5.0
-## Segundos entre zarpazos.
+## Segundos entre zarpazos (antes de las mejoras).
 @export var cooldown: float = 0.6
+## La recarga nunca baja de este valor, por mucha velocidad de ataque que se tenga.
+@export var min_cooldown: float = 0.1
 ## Cuánto empuja a los enemigos golpeados.
 @export var knockback: float = 25.0
 
@@ -27,6 +29,7 @@ extends Node2D
 @export var anim_duration: float = 0.18
 
 var enemy_manager: EnemyManager
+var _stats: PlayerStats
 var _cooldown_left: float = 0.0
 var _anim_time: float = 999.0 # mayor que anim_duration = sin animación
 
@@ -57,15 +60,21 @@ func _physics_process(delta: float) -> void:
 	_swipe(dir)
 
 
-
 func _swipe(dir: Vector2) -> void:
-	_cooldown_left = cooldown
+	var damage_mult := 1.0
+	var speed_mult := 1.0
+	if _stats == null:
+		_stats = get_tree().get_first_node_in_group("player_stats") as PlayerStats
+	if _stats != null:
+		damage_mult = _stats.claw_damage_multiplier()
+		speed_mult = _stats.claw_speed_multiplier()
+
+	_cooldown_left = maxf(cooldown / speed_mult, min_cooldown)
 	_anim_time = 0.0
 	rotation = dir.angle()
-
-	
 	enemy_manager.damage_in_arc(
-		global_position, dir, reach, deg_to_rad(arc_degrees) * 0.5, damage, knockback)
+		global_position, dir, reach, deg_to_rad(arc_degrees) * 0.5,
+		damage * damage_mult, knockback)
 	queue_redraw()
 
 
