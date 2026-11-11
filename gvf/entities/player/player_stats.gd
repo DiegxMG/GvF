@@ -1,26 +1,30 @@
 class_name PlayerStats
 extends Node
-## Guarda las mejoras que el jugador va eligiendo al subir de nivel y las
-## traduce a multiplicadores que leen los demás sistemas. Va como nodo hijo
-## del Player.
+## Guarda las mejoras del jugador y las traduce a multiplicadores que leen los
+## demás sistemas. Va como nodo hijo del Player.
 ##
-## Cada mejora suma un bono a una "estadística" (identificada por un nombre):
+## Hay DOS fuentes de bonos que se SUMAN:
+##   - Bonos base: los que pone el modo de juego al empezar la partida (en el
+##     modo Arcade, las mejoras permanentes compradas). Ver apply_base_bonuses().
+##   - Bonos de partida: los que se eligen al subir de nivel. Ver add_bonus().
+## Así, una mejora de partida se aplica SOBRE la estadística ya mejorada.
+##
+## Estadísticas (por nombre):
 ##   claw_damage   % de daño de la garra          all_damage  % de daño de todas las armas
 ##   claw_speed    % de velocidad de la garra     all_speed   % de velocidad de todas las armas
 ##   move_speed    % de velocidad de movimiento   max_health  vida máxima (puntos)
 ##   defense       % menos de daño recibido       xp_gain     % de XP obtenida
 ##   coin_chance   % de probabilidad de monedas   coin_value  % de valor de las monedas
 ##
-## Quién lee qué: ClawAttack (daño y velocidad), PlayerHealth (defensa),
-## PlayerExperience (XP), XpOrbManager (monedas). La velocidad de movimiento y
-## la vida máxima se aplican directamente aquí.
+## Este script no sabe nada de modos de juego: es el modo quien le entrega sus bonos.
 
 signal stats_changed
 
 ## Con la defensa al máximo, el jugador recibe como mínimo esta fracción del daño.
 const MIN_DAMAGE_TAKEN_MULT := 0.25
 
-var _bonus: Dictionary = {}
+var _base_bonus: Dictionary = {} # bonos del modo (permanentes)
+var _bonus: Dictionary = {} # bonos de la partida
 var _speed_property: StringName = &""
 var _base_speed: float = 0.0
 
@@ -38,15 +42,27 @@ func _ready() -> void:
 		push_warning("PlayerStats: no se encontró la variable de velocidad en el jugador; la mejora de velocidad no tendrá efecto.")
 
 
-## Suma un bono a una estadística (lo llama el menú de mejoras).
+## Entrega los bonos base de la partida (por ejemplo, las mejoras permanentes del
+## modo Arcade): un diccionario estadística -> bono. Se llama una vez al empezar.
+func apply_base_bonuses(bonuses: Dictionary) -> void:
+	for key in bonuses:
+		var stat: StringName = key
+		var amount := float(bonuses[key])
+		_base_bonus[stat] = amount
+		_apply_side_effects(stat, amount)
+	stats_changed.emit()
+
+
+## Suma un bono de partida a una estadística (lo llama el menú de mejoras).
 func add_bonus(stat: StringName, amount: float) -> void:
-	_bonus[stat] = get_bonus(stat) + amount
+	_bonus[stat] = float(_bonus.get(stat, 0.0)) + amount
 	_apply_side_effects(stat, amount)
 	stats_changed.emit()
 
 
+## Bono total de una estadística (base + partida).
 func get_bonus(stat: StringName) -> float:
-	return float(_bonus.get(stat, 0.0))
+	return float(_base_bonus.get(stat, 0.0)) + float(_bonus.get(stat, 0.0))
 
 
 ## Convierte un bono en porcentaje (+25) en multiplicador (1.25).
