@@ -1,31 +1,35 @@
-
 class_name EnemyManager
 extends Node2D
-
 ## Gestiona todos los enemigos mediante arreglos, sin crear un nodo por enemigo.
+## Los enemigos activos ocupan los índices 0 .. _count - 1.
+##
+## Fantasmas fuertes: con el paso del tiempo empiezan a salir fantasmas con un
+## contorno de color (verde, azul, amarillo, rojo) que tienen más vida, hacen
+## más daño y dan más XP y monedas. Los fantasmas sencillos (sin contorno)
+## nunca dejan de salir.
 
-# Recurso SpriteFrames del Fantasma Lento de Día.
-@export var fantasma_lento_frames: SpriteFrames
-# Recurso SpriteFrames del Fantasma Veloz de Día.
-@export var fantasma_veloz_dia_frames: SpriteFrames
-# Posición del fantasma dentro del arreglo Enemy Types.
-@export var ghost_enemy_type_index: int = 0
-
-# Recurso SpriteFrames del Fantasma Lento Noche
-@export var fantasma_lento_noche_frames: SpriteFrames
-# Recurso SpriteFrames del Fantasma Veloz Noche
-@export var fantasma_veloz_noche_frames: SpriteFrames
+## Se emite al morir un enemigo por un ataque.
 signal enemy_killed(position: Vector2, xp: int)
+## Se emite cada vez que un ataque daña a un enemigo (números de daño).
 signal enemy_damaged(position: Vector2, amount: float)
-signal enemy_died(position: Vector2, stats: EnemyStats)
+## Se emite al morir un enemigo, con su recompensa ya calculada:
+## xp (con el bono de su nivel de fuerza), coin_chance (idem) y tier (0 = sencillo).
+signal enemy_died(position: Vector2, stats: EnemyStats, xp: int, coin_chance: float, tier: int)
+
+# Recursos de las cuatro variantes de fantasmas.
+@export var fantasma_lento_frames: SpriteFrames
+@export var fantasma_veloz_dia_frames: SpriteFrames
+@export var fantasma_lento_noche_frames: SpriteFrames
+@export var fantasma_veloz_noche_frames: SpriteFrames
+
+# Índice original del fantasma lento en Enemy Types.
+@export var ghost_enemy_type_index: int = 0
 
 @export var player: Node2D
 @export var enemy_types: Array[EnemyStats] = []
 
-
 @export_group("Límites")
 @export var max_enemies: int = 600
-
 
 @export_group("Dificultad (modo Arcade)")
 @export var start_spawn_rate: float = 1.5
@@ -33,30 +37,48 @@ signal enemy_died(position: Vector2, stats: EnemyStats)
 @export var max_spawn_rate: float = 30.0
 @export var health_growth_per_minute: float = 0.3
 
-
 @export_group("Día y noche")
 @export var day_spawn_multiplier: float = 1.0
 @export var night_spawn_multiplier: float = 1.5
 @export var phase_vanish_time: float = 3.0
 
-
 @export_group("Distancias")
 @export var spawn_margin: float = 80.0
 @export var despawn_factor: float = 1.6
 
-
 @export_group("Jugador")
 @export var player_radius: float = 16.0
-
 
 @export_group("Sprites")
 @export var ghost_sprite_size: Vector2 = Vector2(64.0, 64.0)
 @export var ghost_animation_speed: float = 1.0
 
+@export_group("Fantasmas fuertes (contornos)")
+## Color del contorno de cada nivel de fuerza. El 0 es el sencillo: sin contorno.
+@export var tier_colors: Array[Color] = [
+	Color(0.0, 0.0, 0.0, 0.0),
+	Color(0.35, 1.00, 0.40), # 1: verde
+	Color(0.30, 0.60, 1.00), # 2: azul
+	Color(1.00, 0.90, 0.20), # 3: amarillo
+	Color(1.00, 0.25, 0.25), # 4: rojo
+]
+## Segundo de partida desde el cual puede aparecer cada nivel.
+@export var tier_start_time: Array[float] = [0.0, 120.0, 240.0, 420.0, 600.0]
+## Frecuencia de cada nivel (el 0, sencillo, siempre conserva su peso completo).
+@export var tier_weight: Array[float] = [10.0, 4.0, 2.5, 1.5, 1.0]
+## Segundos que tarda cada nivel en llegar a su frecuencia completa desde que aparece.
+@export var tier_ramp_time: float = 90.0
+## Multiplicadores por nivel de fuerza.
+@export var tier_health_mult: Array[float] = [1.0, 1.6, 2.5, 4.0, 7.0]
+@export var tier_damage_mult: Array[float] = [1.0, 1.15, 1.3, 1.6, 2.0]
+@export var tier_xp_mult: Array[float] = [1.0, 1.5, 2.0, 3.0, 5.0]
+@export var tier_coin_mult: Array[float] = [1.0, 1.5, 2.0, 3.0, 4.0]
+@export var outline_width: float = 2.5
 
 var _pos := PackedVector2Array()
 var _hp := PackedFloat32Array()
 var _type := PackedInt32Array()
+var _tier := PackedByteArray()
 
 var _count: int = 0
 var _time: float = 0.0
@@ -66,20 +88,17 @@ var _purge_left: float = 0.0
 var _player_health: PlayerHealth
 
 
-# -------------------------------------------------------------------
-# INICIALIZACIÓN
-# -------------------------------------------------------------------
-
 func _ready() -> void:
 	add_to_group("enemy_manager")
 
-	# Dibujamos utilizando coordenadas globales.
+	# El dibujo utiliza coordenadas globales del mundo.
 	top_level = true
 	global_position = Vector2.ZERO
 
 	_pos.resize(max_enemies)
 	_hp.resize(max_enemies)
 	_type.resize(max_enemies)
+	_tier.resize(max_enemies)
 
 	TimeManager.phase_changed.connect(_on_phase_changed)
 
@@ -87,18 +106,20 @@ func _ready() -> void:
 		player = get_tree().get_first_node_in_group("player") as Node2D
 
 	if player == null:
-		push_warning("EnemyManager: no se encontró el jugador.")
+		push_warning("EnemyManager: asigna el nodo Player.")
 
 	if enemy_types.is_empty():
-		push_warning("EnemyManager: no hay EnemyStats asignados.")
-
-	if ghost_enemy_type_index < 0 or ghost_enemy_type_index >= enemy_types.size():
-		push_warning("EnemyManager: el índice del fantasma no existe en Enemy Types.")
+		push_warning("EnemyManager: agrega EnemyStats.")
 
 	if fantasma_lento_frames == null:
-		push_warning("EnemyManager: no se asignó el SpriteFrames del fantasma.")
+		push_warning("EnemyManager: asigna el recurso SpriteFrames del fantasma.")
 	else:
-		print("Animaciones del fantasma: ", fantasma_lento_frames.get_animation_names())
+		var animations := fantasma_lento_frames.get_animation_names()
+
+		if animations.is_empty():
+			push_warning("EnemyManager: el SpriteFrames no contiene animaciones.")
+		else:
+			print("Animaciones del fantasma: ", animations)
 
 
 func _physics_process(delta: float) -> void:
@@ -116,9 +137,9 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
 # DÍA Y NOCHE
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
 
 func _on_phase_changed(_is_night: bool) -> void:
 	_purge_left = phase_vanish_time
@@ -150,9 +171,9 @@ func _purge_wrong_phase(delta: float) -> void:
 			_remove_enemy(i)
 
 
-# -------------------------------------------------------------------
-# GENERACIÓN DE ENEMIGOS
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
+# GENERACIÓN
+# -----------------------------------------------------------------
 
 func _update_spawning(delta: float, target: Vector2) -> void:
 	var rate := minf(
@@ -177,9 +198,12 @@ func _spawn_enemy(center: Vector2) -> void:
 	if t < 0:
 		return
 
+	var tier := _roll_tier()
+
 	_pos[_count] = _random_ring_position(center)
-	_hp[_count] = enemy_types[t].max_health * _health_multiplier()
+	_hp[_count] = enemy_types[t].max_health * _health_multiplier() * _tv(tier_health_mult, tier, 1.0)
 	_type[_count] = t
+	_tier[_count] = tier
 
 	_count += 1
 
@@ -213,6 +237,45 @@ func _can_spawn(stats: EnemyStats, night: bool) -> bool:
 	return _time >= stats.appears_at_time and _matches_phase(stats, night)
 
 
+## Elige el nivel de fuerza de un enemigo nuevo. Los niveles fuertes aparecen
+## poco a poco con el tiempo; el 0 (sencillo) siempre está disponible.
+func _roll_tier() -> int:
+	var total := 0.0
+
+	for k in tier_colors.size():
+		total += _tier_weight_now(k)
+
+	if total <= 0.0:
+		return 0
+
+	var roll := randf() * total
+
+	for k in tier_colors.size():
+		roll -= _tier_weight_now(k)
+
+		if roll <= 0.0:
+			return k
+
+	return 0
+
+
+func _tier_weight_now(k: int) -> float:
+	var weight := _tv(tier_weight, k, 0.0)
+
+	if k == 0:
+		return weight
+
+	var start := _tv(tier_start_time, k, INF)
+	var ramp := clampf((_time - start) / maxf(tier_ramp_time, 0.01), 0.0, 1.0)
+
+	return weight * ramp
+
+
+# Lee un valor de una lista por nivel; si la lista es corta, usa el valor de respaldo.
+func _tv(values: Array[float], k: int, fallback: float) -> float:
+	return values[k] if k >= 0 and k < values.size() else fallback
+
+
 func _health_multiplier() -> float:
 	return 1.0 + health_growth_per_minute * (_time / 60.0)
 
@@ -228,9 +291,9 @@ func _random_ring_position(center: Vector2) -> Vector2:
 	return center + Vector2.from_angle(angle) * radius
 
 
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
 # MOVIMIENTO Y CONTACTO
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
 
 func _move_enemies(delta: float, target: Vector2) -> void:
 	var night: bool = TimeManager.is_night
@@ -251,7 +314,7 @@ func _move_enemies(delta: float, target: Vector2) -> void:
 
 		if dist_sq <= touch * touch:
 			if _matches_phase(stats, night):
-				_damage_player(stats.contact_damage)
+				_damage_player(stats.contact_damage * _tv(tier_damage_mult, _tier[i], 1.0))
 
 			continue
 
@@ -264,7 +327,7 @@ func _move_enemies(delta: float, target: Vector2) -> void:
 func _damage_player(amount: float) -> void:
 	if _player_health == null:
 		_player_health = get_tree().get_first_node_in_group(
-            "player_health"
+			"player_health"
 		) as PlayerHealth
 
 		if _player_health == null:
@@ -273,9 +336,9 @@ func _damage_player(amount: float) -> void:
 	_player_health.take_damage(amount)
 
 
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
 # DIBUJO DE ENEMIGOS
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
 
 func _draw() -> void:
 	if player == null:
@@ -297,30 +360,40 @@ func _draw() -> void:
 		var stats := enemy_types[_type[i]]
 		var color := stats.color
 
+		# Contorno según su nivel de fuerza (el 0 no tiene).
+		var tier: int = _tier[i]
+		var outline := Color(0.0, 0.0, 0.0, 0.0)
+		if tier > 0 and tier < tier_colors.size():
+			outline = tier_colors[tier]
+
 		if fading and not _matches_phase(stats, night):
 			color.a = 0.35
+			outline.a *= 0.35
 
-		# Fantasma Lento Día
-		if _type[i] == 0 and fantasma_lento_frames != null:
-			_draw_ghost(p, center, color, fantasma_lento_frames)
+		# Seleccionar el recurso de animación según el tipo de enemigo.
+		var frames: SpriteFrames = null
+		match _type[i]:
+			0:
+				frames = fantasma_lento_frames
+			1:
+				frames = fantasma_veloz_dia_frames
+			2:
+				frames = fantasma_lento_noche_frames
+			3:
+				frames = fantasma_veloz_noche_frames
+
+		if frames != null:
+			# Blanco conserva el color original de los sprites.
+			var sprite_color := Color(1.0, 1.0, 1.0, color.a)
+			_draw_ghost(p, center, sprite_color, frames, outline)
 			continue
 
-		# Fantasma Veloz Día
-		if _type[i] == 1 and fantasma_veloz_dia_frames != null:
-			_draw_ghost(p, center, Color.WHITE, fantasma_veloz_dia_frames)
-			continue
-		
-		# Fantasma Lento Noche
-		if _type[i] == 2 and fantasma_lento_noche_frames != null:
-			_draw_ghost(p, center, Color.WHITE, fantasma_lento_noche_frames)
-			continue
-			
-		# Fantasma Veloz Noche
-		if _type[i] == 3 and fantasma_veloz_noche_frames != null:
-			_draw_ghost(p, center, Color.WHITE, fantasma_veloz_noche_frames)
-			continue
 		# Resto de enemigos.
 		var s := stats.size
+
+		if outline.a > 0.0:
+			var big := s + outline_width * 2.0
+			draw_rect(Rect2(p - Vector2(big, big) * 0.5, Vector2(big, big)), outline)
 
 		draw_rect(
 			Rect2(
@@ -331,64 +404,63 @@ func _draw() -> void:
 		)
 
 
-# -------------------------------------------------------------------
-# ANIMACIÓN DEL FANTASMA LENTO
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
+# ANIMACIÓN DEL FANTASMA
+# -----------------------------------------------------------------
 
 func _draw_ghost(
 	p: Vector2,
 	target: Vector2,
 	color: Color,
-	frames: SpriteFrames
+	frames: SpriteFrames,
+	outline: Color
 ) -> void:
-
 	var direction := target - p
 	var facing := "right"
-
 	if absf(direction.x) > absf(direction.y):
 		facing = "right" if direction.x >= 0.0 else "left"
 	else:
 		facing = "down" if direction.y >= 0.0 else "up"
 
 	var animation_name := "move_" + facing
-
 	if not frames.has_animation(animation_name):
-		return
+		if frames.has_animation("move"):
+			animation_name = "move"
+		else:
+			return
 
 	var frame_count := frames.get_frame_count(animation_name)
-
 	if frame_count <= 0:
 		return
 
-	var fps := frames.get_animation_speed(animation_name)
-	fps *= ghost_animation_speed
-
+	var fps := frames.get_animation_speed(animation_name) * ghost_animation_speed
 	if fps <= 0.0:
 		fps = 1.0
 
 	var frame_index := int(_time * fps) % frame_count
-
-	var texture := frames.get_frame_texture(
-		animation_name,
-		frame_index
-	)
-
+	var texture := frames.get_frame_texture(animation_name, frame_index)
 	if texture == null:
 		return
 
-	draw_texture_rect(
-		texture,
-		Rect2(
-			p - ghost_sprite_size * 0.5,
-			ghost_sprite_size
-		),
-		false,
-		color
-	)
+	var rect := Rect2(p - ghost_sprite_size * 0.5, ghost_sprite_size)
+
+	# Dibujar un contorno sencillo para los fantasmas fuertes.
+	if outline.a > 0.0 and outline_width > 0.0:
+		var offsets := [
+			Vector2(-outline_width, 0.0),
+			Vector2(outline_width, 0.0),
+			Vector2(0.0, -outline_width),
+			Vector2(0.0, outline_width)
+		]
+		for offset in offsets:
+			draw_texture_rect(texture, Rect2(rect.position + offset, rect.size), false, outline)
+
+	draw_texture_rect(texture, rect, false, color)
+
 
 # -------------------------------------------------------------------
 # API PARA ARMAS, XP Y DAÑO
-# -------------------------------------------------------------------
+# -----------------------------------------------------------------
 
 func get_enemy_count() -> int:
 	return _count
@@ -426,7 +498,6 @@ func damage_in_arc(
 
 	var hits := 0
 
-	# Recorrer de atrás hacia adelante porque los enemigos pueden morir.
 	for i in range(_count - 1, -1, -1):
 		var to := _pos[i] - origin
 		var d_sq := to.length_squared()
@@ -466,9 +537,12 @@ func kill_enemy(i: int) -> void:
 		return
 
 	var stats := enemy_types[_type[i]]
+	var tier: int = _tier[i]
+	var xp := maxi(1, roundi(stats.xp_value * _tv(tier_xp_mult, tier, 1.0)))
+	var coin_chance := stats.coin_chance * _tv(tier_coin_mult, tier, 1.0)
 
-	enemy_killed.emit(_pos[i], stats.xp_value)
-	enemy_died.emit(_pos[i], stats)
+	enemy_killed.emit(_pos[i], xp)
+	enemy_died.emit(_pos[i], stats, xp, coin_chance, tier)
 
 	_remove_enemy(i)
 
@@ -479,3 +553,4 @@ func _remove_enemy(i: int) -> void:
 	_pos[i] = _pos[_count]
 	_hp[i] = _hp[_count]
 	_type[i] = _type[_count]
+	_tier[i] = _tier[_count]

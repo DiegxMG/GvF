@@ -15,7 +15,7 @@ extends CanvasLayer
 ## Fracción del recorrido (0 a 1) que se ignora cerca del centro.
 @export_range(0.0, 0.9) var dead_zone: float = 0.15
 ## Los toques por encima de esta altura se ignoran (zona de la barra superior).
-@export var ignore_top: float = 120.0
+@export var ignore_top: float = 135.0
 ## Si es true, el centro del joystick sigue al dedo cuando se aleja demasiado.
 ## Con false (lo normal) el centro queda FIJO donde se puso el dedo al empezar.
 @export var follow_finger: bool = false
@@ -28,9 +28,9 @@ extends CanvasLayer
 
 @export_group("Aspecto")
 @export var knob_radius: float = 34.0
-@export var fill_color: Color = Color(1.0, 1.0, 1.0, 0.12)
-@export var ring_color: Color = Color(1.0, 1.0, 1.0, 0.45)
-@export var knob_color: Color = Color(1.0, 1.0, 1.0, 0.35)
+@export var fill_color: Color = Color(0.55, 0.30, 0.95, 0.16)
+@export var ring_color: Color = Color(0.74, 0.55, 1.0, 0.75)
+@export var knob_color: Color = Color(0.66, 0.40, 1.0, 0.60)
 
 var _ui: Control
 var _touch_index: int = -1

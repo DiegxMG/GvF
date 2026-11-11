@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://cdctqfgsapwyi" path="res://entities/player/claw_attack.gd" id="4_fkugw"]
 [ext_resource type="Script" uid="uid://dhs3euhdr5iw7" path="res://entities/player/player_experience.gd" id="5_fkugw"]
 [ext_resource type="Script" uid="uid://dv8nioask8ybg" path="res://entities/player/player_stats.gd" id="7_qiwj3"]
+[ext_resource type="Script" uid="uid://c7chylsul60su" path="res://entities/player/player_equipment.gd" id="8_26q78"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_oi1du"]
 radius = 12.0
@@ -39,3 +40,6 @@ script = ExtResource("5_fkugw")
 
 [node name="PlayerStats" type="Node" parent="." unique_id=384535451]
 script = ExtResource("7_qiwj3")
+
+[node name="player_equipment" type="Node" parent="." unique_id=901105225]
+script = ExtResource("8_26q78")

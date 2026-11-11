@@ -1,13 +1,17 @@
 class_name GameOver
 extends CanvasLayer
 ## Pantalla de Game Over. Se crea sola por código (no necesita escena de UI).
-## Se conecta a la vida del jugador y al EnemyManager buscándolos por grupos.
-## Muestra tiempo, nivel alcanzado, enemigos eliminados y monedas.
+## Muestra tiempo, nivel alcanzado, enemigos eliminados y monedas, con dos
+## botones: jugar de nuevo y abrir las mejoras permanentes del modo Arcade.
+## (Cuando el menú principal esté listo, el botón de mejoras vivirá ahí.)
 
-var _label: Label
+var _stats_label: Label
+var _play_button: Button
+var _upgrades_button: Button
 var _kills: int = 0
 var _time: float = 0.0
 var _shown_at_ms: int = 0
+var _root: Control
 
 
 func _ready() -> void:
@@ -20,19 +24,54 @@ func _ready() -> void:
 
 
 func _build_ui() -> void:
+	_root = Control.new()
+	_root.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_root)
+	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	var dim := ColorRect.new()
-	dim.color = Color(0.0, 0.0, 0.0, 0.65)
+	dim.color = Color(0.04, 0.0, 0.10, 0.80)
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(dim)
+	_root.add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	_label = Label.new()
-	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_label.add_theme_font_size_override("font_size", 36)
-	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_label)
-	_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var center := CenterContainer.new()
+	_root.add_child(center)
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override(
+		"panel", GameTheme.make_box(Color(0.15, 0.07, 0.30, 0.97), GameTheme.LILAC, 4, 28, 30.0))
+	center.add_child(panel)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 18)
+	panel.add_child(box)
+
+	var title := Label.new()
+	title.text = "GAME OVER"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	GameTheme.style_label(title, 52, GameTheme.GREEN)
+	box.add_child(title)
+
+	_stats_label = Label.new()
+	_stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	GameTheme.style_label(_stats_label, 26)
+	box.add_child(_stats_label)
+
+	_play_button = Button.new()
+	_play_button.text = "JUGAR DE NUEVO"
+	_play_button.custom_minimum_size = Vector2(460.0, 80.0)
+	GameTheme.style_button(_play_button, 28)
+	_play_button.pressed.connect(_on_play_pressed)
+	box.add_child(_play_button)
+
+	_upgrades_button = Button.new()
+	_upgrades_button.text = "MEJORAS"
+	_upgrades_button.custom_minimum_size = Vector2(460.0, 80.0)
+	GameTheme.style_button(_upgrades_button, 28)
+	_upgrades_button.pressed.connect(_on_upgrades_pressed)
+	box.add_child(_upgrades_button)
 
 
 func _connect_signals() -> void:
@@ -67,22 +106,27 @@ func _on_player_died() -> void:
 	var run := get_tree().get_first_node_in_group("run_stats") as RunStats
 	if run != null:
 		coins = run.coins
-	_label.text = "GAME OVER\n\nSobreviviste %02d:%02d\nNivel alcanzado: %d\nEnemigos eliminados: %d\nMonedas: %d\n\nToca para reiniciar" % [
+	_stats_label.text = "Sobreviviste %02d:%02d\nNivel alcanzado: %d\nEnemigos eliminados: %d\nMonedas ganadas: %d" % [
 		minutes, seconds, level, _kills, coins]
 	_shown_at_ms = Time.get_ticks_msec()
 	visible = true
 	get_tree().paused = true
 
 
-func _input(event: InputEvent) -> void:
-	if not visible:
+# Pequeña espera para no pulsar un botón por un toque accidental.
+func _too_soon() -> bool:
+	return Time.get_ticks_msec() - _shown_at_ms < 700
+
+
+func _on_play_pressed() -> void:
+	if _too_soon():
 		return
-	# Pequeña espera para no reiniciar por un toque accidental.
-	if Time.get_ticks_msec() - _shown_at_ms < 700:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
+func _on_upgrades_pressed() -> void:
+	if _too_soon():
 		return
-	var pressed: bool = (event is InputEventScreenTouch and event.pressed) \
-		or (event is InputEventMouseButton and event.pressed) \
-		or (event is InputEventKey and event.pressed)
-	if pressed:
-		get_tree().paused = false
-		get_tree().reload_current_scene()
+	var menu := ArcadeUpgradesMenu.new()
+	add_child(menu)

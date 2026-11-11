@@ -1,23 +1,28 @@
 class_name HudTopBar
 extends CanvasLayer
-## Barra superior del juego, al estilo de Vampire Survivors: una franja negra
-## semitransparente con la barra de experiencia y el nivel, el tiempo de
-## partida, el día/noche y los contadores de enemigos eliminados y monedas.
-## A la izquierda queda reservado un espacio (items_area) para mostrar los
-## objetos del jugador más adelante. Se construye solo, por código.
+## Barra superior del juego, al estilo de Vampire Survivors: una franja
+## semitransparente con la barra de experiencia (morada) y el nivel, el tiempo
+## de partida, el día/noche, los contadores de enemigos eliminados y monedas, y
+## el mostrador de lo que el jugador lleva equipado:
+##   - fila de 6 casillas de armas
+##   - fila de 3 casillas de modificadores de la partida
+## Se construye solo, por código. Colores y fuente salen de GameTheme.
 
 ## Símbolos provisionales de los contadores. Más adelante se reemplazan por
 ## iconos (una calavera y una moneda).
 const ICON_KILLS := "X"
 const ICON_COINS := "M"
 
-@export var bar_height: float = 112.0
-@export var background_color: Color = Color(0.0, 0.0, 0.0, 0.45)
-@export var xp_fill_color: Color = Color(0.25, 0.45, 1.0)
-@export var xp_back_color: Color = Color(0.04, 0.04, 0.10, 0.85)
-@export var xp_border_color: Color = Color(0.85, 0.70, 0.30)
+const SLOT_SIZE := 34.0
+const SLOT_GAP := 4.0
 
-## Zona reservada para los iconos de los objetos (se usará más adelante).
+@export var bar_height: float = 122.0
+@export var background_color: Color = Color(0.05, 0.0, 0.12, 0.55)
+@export var xp_fill_color: Color = Color(0.62, 0.36, 0.98)
+@export var xp_back_color: Color = Color(0.08, 0.03, 0.16, 0.85)
+@export var xp_border_color: Color = Color(0.78, 0.65, 1.0)
+
+## Contenedor de las casillas (por si se quiere mover o ampliar).
 var items_area: Control
 
 var _xp_bar: ProgressBar
@@ -26,6 +31,9 @@ var _time_label: Label
 var _phase_label: Label
 var _kills_label: Label
 var _coins_label: Label
+var _weapon_slots: Array[Panel] = []
+var _modifier_slots: Array[Panel] = []
+var _equipment: PlayerEquipment
 
 
 func _ready() -> void:
@@ -43,7 +51,7 @@ func _ready() -> void:
 	root.add_child(back)
 	back.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE)
 
-	# Barra de experiencia
+	# Barra de experiencia (morada)
 	_xp_bar = ProgressBar.new()
 	_xp_bar.show_percentage = false
 	_xp_bar.min_value = 0.0
@@ -51,49 +59,54 @@ func _ready() -> void:
 	_xp_bar.value = 0.0
 	_xp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_xp_bar.custom_minimum_size = Vector2(0.0, 26.0)
-	_xp_bar.add_theme_stylebox_override("background", _make_box(xp_back_color, xp_border_color, 2))
-	_xp_bar.add_theme_stylebox_override("fill", _make_box(xp_fill_color, Color(0.0, 0.0, 0.0, 0.0), 0))
+	_xp_bar.add_theme_stylebox_override("background", GameTheme.make_box(xp_back_color, xp_border_color, 2, 6))
+	_xp_bar.add_theme_stylebox_override("fill", GameTheme.make_box(xp_fill_color, Color(0.0, 0.0, 0.0, 0.0), 0, 6))
 	root.add_child(_xp_bar)
 	_xp_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE, 8)
 
 	# Nivel, dentro de la barra, a la derecha
-	_level_label = _make_label(18)
+	_level_label = _make_label(18, GameTheme.TEXT)
 	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_xp_bar.add_child(_level_label)
 	_level_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_level_label.offset_right = -8.0
+	_level_label.offset_right = -10.0
 
 	# Tiempo de partida
-	_time_label = _make_label(36)
+	_time_label = _make_label(34, GameTheme.TEXT)
 	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_time_label)
 	_time_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	_time_label.offset_top = 38.0
-	_time_label.offset_bottom = 80.0
+	_time_label.offset_top = 40.0
+	_time_label.offset_bottom = 82.0
 
 	# Día / noche
-	_phase_label = _make_label(20)
+	_phase_label = _make_label(18, GameTheme.GREEN)
 	_phase_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_phase_label)
 	_phase_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	_phase_label.offset_top = 80.0
-	_phase_label.offset_bottom = 106.0
+	_phase_label.offset_top = 84.0
+	_phase_label.offset_bottom = 110.0
 
 	# Contadores a la derecha: enemigos eliminados y monedas
-	_kills_label = _make_counter(root, 38.0, Color(0.95, 0.95, 0.95))
-	_coins_label = _make_counter(root, 72.0, Color(1.0, 0.85, 0.30))
+	_kills_label = _make_counter(root, 40.0, GameTheme.TEXT)
+	_coins_label = _make_counter(root, 76.0, GameTheme.GOLD)
 
-	# Espacio reservado para los objetos
+	# Mostrador de equipo: armas arriba, modificadores abajo
 	items_area = Control.new()
 	items_area.name = "ItemsArea"
 	items_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(items_area)
-	items_area.position = Vector2(8.0, 40.0)
-	items_area.size = Vector2(200.0, 64.0)
+	items_area.position = Vector2(8.0, 42.0)
+	items_area.size = Vector2(6.0 * (SLOT_SIZE + SLOT_GAP), 2.0 * SLOT_SIZE + SLOT_GAP)
+	for i in PlayerEquipment.MAX_WEAPON_SLOTS:
+		_weapon_slots.append(_make_slot(Vector2(i * (SLOT_SIZE + SLOT_GAP), 0.0)))
+	for i in PlayerEquipment.MAX_MODIFIER_SLOTS:
+		_modifier_slots.append(_make_slot(Vector2(i * (SLOT_SIZE + SLOT_GAP), SLOT_SIZE + SLOT_GAP)))
 
 	_on_kills_changed(0)
 	_on_coins_changed(0)
+	_refresh_slots()
 	_connect_signals.call_deferred()
 
 
@@ -114,6 +127,13 @@ func _connect_signals() -> void:
 	else:
 		push_warning("HudTopBar: no se encontró RunStats en el mundo.")
 
+	_equipment = get_tree().get_first_node_in_group("player_equipment") as PlayerEquipment
+	if _equipment != null:
+		_equipment.equipment_changed.connect(_refresh_slots)
+		_refresh_slots()
+	else:
+		push_warning("HudTopBar: no se encontró PlayerEquipment en el jugador.")
+
 
 func _process(_delta: float) -> void:
 	var total := int(TimeManager.elapsed)
@@ -125,6 +145,7 @@ func _process(_delta: float) -> void:
 	var left := int(TimeManager.get_phase_time_left())
 	_phase_label.text = "%s %d  ·  %s en %d:%02d" % [
 		phase, TimeManager.day_number, next_phase, int(left / 60.0), left % 60]
+	_phase_label.add_theme_color_override("font_color", GameTheme.LILAC if night else GameTheme.GREEN)
 
 
 func _on_xp_changed(current: int, needed: int, level: int) -> void:
@@ -141,10 +162,76 @@ func _on_coins_changed(coins: int) -> void:
 	_coins_label.text = "%s: %d" % [ICON_COINS, coins]
 
 
+# --- Casillas de equipo ---------------------------------------------------------------------
+
+func _make_slot(pos: Vector2) -> Panel:
+	var slot := Panel.new()
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.position = pos
+	slot.size = Vector2(SLOT_SIZE, SLOT_SIZE)
+	items_area.add_child(slot)
+
+	var icon := _make_label(18, GameTheme.TEXT)
+	icon.name = "Icon"
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	slot.add_child(icon)
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var level := _make_label(12, GameTheme.TEXT)
+	level.name = "Level"
+	level.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	level.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	slot.add_child(level)
+	level.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	level.offset_right = -2.0
+	level.offset_bottom = 0.0
+
+	_set_slot(slot, {}, 0)
+	return slot
+
+
+# Pinta una casilla: vacía (info = {}) o llena con el icono y nivel del objeto.
+func _set_slot(slot: Panel, info: Dictionary, level: int) -> void:
+	var icon := slot.get_node("Icon") as Label
+	var level_label := slot.get_node("Level") as Label
+	if info.is_empty():
+		slot.add_theme_stylebox_override(
+			"panel", GameTheme.make_box(Color(0.0, 0.0, 0.0, 0.30), Color(0.78, 0.65, 1.0, 0.35), 2, 6))
+		icon.text = ""
+		level_label.text = ""
+		return
+	var color: Color = info["color"]
+	slot.add_theme_stylebox_override(
+		"panel", GameTheme.make_box(color.darkened(0.45), color.lightened(0.25), 2, 6))
+	icon.text = info["icon"]
+	level_label.text = str(level) if level > 1 else ""
+
+
+func _refresh_slots() -> void:
+	for i in _weapon_slots.size():
+		var info := {}
+		var level := 0
+		if _equipment != null and i < _equipment.weapons.size():
+			var id: StringName = _equipment.weapons[i]
+			info = UpgradeDatabase.item_info(id)
+			level = _equipment.get_weapon_level(id)
+		_set_slot(_weapon_slots[i], info, level)
+	for i in _modifier_slots.size():
+		var info := {}
+		var level := 0
+		if _equipment != null and i < _equipment.modifiers.size():
+			var id: StringName = _equipment.modifiers[i]
+			info = UpgradeDatabase.item_info(id)
+			level = _equipment.get_modifier_level(id)
+		_set_slot(_modifier_slots[i], info, level)
+
+
+# --- Utilidades de interfaz ------------------------------------------------------------------
+
 func _make_counter(root: Control, top: float, color: Color) -> Label:
-	var label := _make_label(26)
+	var label := _make_label(24, color)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	label.add_theme_color_override("font_color", color)
 	root.add_child(label)
 	label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	label.offset_left = -170.0
@@ -154,18 +241,8 @@ func _make_counter(root: Control, top: float, color: Color) -> Label:
 	return label
 
 
-func _make_label(font_size: int) -> Label:
+func _make_label(font_size: int, color: Color) -> Label:
 	var label := Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_outline_color", Color.BLACK)
-	label.add_theme_constant_override("outline_size", maxi(4, int(font_size / 6.0)))
+	GameTheme.style_label(label, font_size, color)
 	return label
-
-
-func _make_box(fill: Color, border: Color, border_width: int) -> StyleBoxFlat:
-	var box := StyleBoxFlat.new()
-	box.bg_color = fill
-	box.border_color = border
-	box.set_border_width_all(border_width)
-	return box

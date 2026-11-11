@@ -11,8 +11,8 @@ extends Node2D
 ## Cuánto sube el número durante su vida.
 @export var rise_distance: float = 40.0
 @export var font_size: int = 22
-@export var color: Color = Color(1.0, 1.0, 1.0)
-@export var outline_color: Color = Color(0.0, 0.0, 0.0)
+@export var color: Color = Color(0.96, 0.93, 1.0)
+@export var outline_color: Color = Color(0.10, 0.04, 0.20)
 
 var _pos := PackedVector2Array()
 var _value := PackedInt32Array()
@@ -28,7 +28,7 @@ func _ready() -> void:
 	_value.resize(max_numbers)
 	_age.resize(max_numbers)
 	_age.fill(lifetime) # todos "ya terminados"
-	_font = ThemeDB.fallback_font
+	_font = GameTheme.font()
 	_connect_signals.call_deferred()
 
 

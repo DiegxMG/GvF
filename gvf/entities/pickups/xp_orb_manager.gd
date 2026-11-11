@@ -1,25 +1,24 @@
 class_name XpOrbManager
 extends Node2D
-## Maneja TODOS los recogibles del suelo (orbes de XP y monedas) con arreglos,
-## igual que EnemyManager.
+## Maneja TODOS los recogibles del suelo con arreglos, igual que EnemyManager:
+##   - Orbe de XP: siempre se suelta, con la XP que vale el enemigo.
+##   - Moneda: se suelta con la probabilidad del enemigo (que "Olfato de suerte"
+##     aumenta) y vale coin_value (que "Monedas brillantes" aumenta).
+##   - Ratón: cura al gato. Se suelta con poca probabilidad (más con enemigos
+##     fuertes). Si el gato tiene la vida llena, el ratón se queda en el suelo.
 ##
-## Nacen SOLO cuando un enemigo muere por un ataque: escuchan enemy_died, que
-## EnemyManager emite únicamente en kill_enemy(). Los fantasmas que se
-## desvanecen al cambiar de fase no sueltan nada.
-##
-## - Orbe de XP: siempre se suelta, con el xp_value del enemigo.
-## - Moneda: se suelta con la probabilidad coin_chance del enemigo (que la
-##   mejora "Olfato de suerte" aumenta) y vale coin_value (que la mejora
-##   "Monedas brillantes" aumenta).
+## Nacen SOLO cuando un enemigo muere por un ataque (señal enemy_died). Los
+## fantasmas que se desvanecen al cambiar de fase no sueltan nada.
 ##
 ## El jugador los recoge al acercarse: dentro de magnet_radius son atraídos y
 ## aceleran; dentro de collect_radius se recogen.
 ##
-## Por ahora son círculos dibujados por código. Cuando haya sprites, solo hay
+## Por ahora son figuras dibujadas por código. Cuando haya sprites, solo hay
 ## que cambiar _draw().
 
 const KIND_XP := 0
 const KIND_COIN := 1
+const KIND_MOUSE := 2
 
 ## Se asigna solo (usa el mismo jugador que EnemyManager) si se deja vacío.
 @export var player: Node2D
@@ -34,6 +33,12 @@ const KIND_COIN := 1
 @export var pull_acceleration: float = 1200.0
 @export var pull_max_speed: float = 1000.0
 
+@export_group("Ratón (salud)")
+## Probabilidad base (0 a 1) de que un enemigo suelte un ratón. 0.015 = 1.5 %.
+@export_range(0.0, 1.0, 0.001) var mouse_drop_chance: float = 0.015
+## Fracción de la vida máxima que cura (0.12 = 12 %).
+@export_range(0.0, 1.0, 0.01) var mouse_heal_percent: float = 0.12
+
 @export_group("Aspecto")
 ## Color del orbe de XP según su valor: 1 | 2-3 | 4-7 | 8 o más.
 @export var tier_colors: Array[Color] = [
@@ -46,6 +51,7 @@ const KIND_COIN := 1
 @export var radius_per_tier: float = 1.5
 @export var coin_radius: float = 8.0
 @export var coin_color: Color = Color(1.0, 0.78, 0.15)
+@export var mouse_color: Color = Color(0.82, 0.76, 0.92)
 
 var _pos := PackedVector2Array()
 var _value := PackedInt32Array()
@@ -55,6 +61,7 @@ var _count: int = 0
 var _experience: PlayerExperience
 var _player_stats: PlayerStats
 var _run_stats: RunStats
+var _health: PlayerHealth
 
 
 func _ready() -> void:
@@ -78,17 +85,21 @@ func _connect_signals() -> void:
 		player = manager.player
 
 
-func _on_enemy_died(at: Vector2, stats: EnemyStats) -> void:
-	spawn_pickup(at, stats.xp_value, KIND_XP)
-	var chance := stats.coin_chance
+func _on_enemy_died(at: Vector2, stats: EnemyStats, xp: int, coin_chance: float, tier: int) -> void:
+	spawn_pickup(at, xp, KIND_XP)
+
+	var chance := coin_chance
 	var player_stats := _get_player_stats()
 	if player_stats != null:
 		chance *= player_stats.coin_chance_multiplier()
 	if randf() < chance:
 		spawn_pickup(at, stats.coin_value, KIND_COIN)
 
+	if randf() < mouse_drop_chance * (1.0 + 0.5 * tier):
+		spawn_pickup(at, 1, KIND_MOUSE)
 
-## Crea un orbe de XP o una moneda (kind) con el valor indicado.
+
+## Crea un recogible (orbe de XP, moneda o ratón) con el valor indicado.
 func spawn_pickup(at: Vector2, value: int, kind: int) -> void:
 	if value <= 0:
 		return
@@ -114,9 +125,13 @@ func _physics_process(delta: float) -> void:
 	var target := player.global_position
 	var collect_sq := collect_radius * collect_radius
 	var magnet_sq := magnet_radius * magnet_radius
+	var health_full := _is_health_full()
 
 	# De atrás hacia adelante: al recoger uno cambian los índices.
 	for i in range(_count - 1, -1, -1):
+		# El ratón no se toca si el gato tiene la vida llena: se queda para después.
+		if _kind[i] == KIND_MOUSE and health_full:
+			continue
 		var offset := target - _pos[i]
 		var d_sq := offset.length_squared()
 		if d_sq <= collect_sq:
@@ -141,7 +156,7 @@ func _collect(i: int) -> void:
 	_kind[i] = _kind[_count]
 
 
-# Entrega el recogible al jugador: XP al nivel, monedas al contador de la partida.
+# Entrega el recogible al jugador: XP al nivel, monedas al contador, ratón a la vida.
 func _deliver(value: int, kind: int) -> void:
 	if kind == KIND_COIN:
 		if _run_stats == null:
@@ -152,6 +167,10 @@ func _deliver(value: int, kind: int) -> void:
 			if player_stats != null:
 				mult = player_stats.coin_value_multiplier()
 			_run_stats.add_coins(value * mult)
+	elif kind == KIND_MOUSE:
+		var health := _get_health()
+		if health != null:
+			health.heal(health.max_health * mouse_heal_percent)
 	else:
 		if _experience == null:
 			_experience = get_tree().get_first_node_in_group("player_experience") as PlayerExperience
@@ -163,6 +182,17 @@ func _get_player_stats() -> PlayerStats:
 	if _player_stats == null:
 		_player_stats = get_tree().get_first_node_in_group("player_stats") as PlayerStats
 	return _player_stats
+
+
+func _get_health() -> PlayerHealth:
+	if _health == null:
+		_health = get_tree().get_first_node_in_group("player_health") as PlayerHealth
+	return _health
+
+
+func _is_health_full() -> bool:
+	var health := _get_health()
+	return health != null and health.is_full()
 
 
 # --- Dibujo -----------------------------------------------------------------------------
@@ -192,6 +222,8 @@ func _draw() -> void:
 			draw_circle(p, coin_radius + 1.5, Color(0.35, 0.22, 0.05, 0.9))
 			draw_circle(p, coin_radius, coin_color)
 			draw_circle(p, coin_radius * 0.6, coin_color.lightened(0.45))
+		elif _kind[i] == KIND_MOUSE:
+			_draw_mouse(p)
 		else:
 			var tier := _tier(_value[i])
 			var r := base_radius + radius_per_tier * tier
@@ -199,3 +231,14 @@ func _draw() -> void:
 			draw_circle(p, r + 1.5, Color(0.0, 0.0, 0.0, 0.5))
 			draw_circle(p, r, color)
 			draw_circle(p + Vector2(-r, -r) * 0.3, r * 0.35, color.lightened(0.6))
+
+
+# Ratón provisional: un rectángulo con orejas y cola.
+func _draw_mouse(p: Vector2) -> void:
+	var body := Rect2(p - Vector2(11.0, 7.0), Vector2(22.0, 14.0))
+	draw_line(p + Vector2(-11.0, 2.0), p + Vector2(-20.0, -3.0), Color(0.95, 0.60, 0.70), 2.0)
+	draw_rect(Rect2(body.position - Vector2(1.5, 1.5), body.size + Vector2(3.0, 3.0)), Color(0.10, 0.04, 0.20, 0.9))
+	draw_rect(body, mouse_color)
+	draw_circle(p + Vector2(7.0, -7.0), 3.5, Color(0.95, 0.60, 0.70))
+	draw_circle(p + Vector2(0.0, -7.0), 3.5, Color(0.95, 0.60, 0.70))
+	draw_circle(p + Vector2(8.0, -1.0), 1.4, Color(0.10, 0.04, 0.20))
