@@ -6,10 +6,15 @@ extends Node2D
 
 # Recurso SpriteFrames del Fantasma Lento de Día.
 @export var fantasma_lento_frames: SpriteFrames
-
+# Recurso SpriteFrames del Fantasma Veloz de Día.
+@export var fantasma_veloz_dia_frames: SpriteFrames
 # Posición del fantasma dentro del arreglo Enemy Types.
 @export var ghost_enemy_type_index: int = 0
 
+# Recurso SpriteFrames del Fantasma Lento Noche
+@export var fantasma_lento_noche_frames: SpriteFrames
+# Recurso SpriteFrames del Fantasma Veloz Noche
+@export var fantasma_veloz_noche_frames: SpriteFrames
 signal enemy_killed(position: Vector2, xp: int)
 signal enemy_damaged(position: Vector2, amount: float)
 signal enemy_died(position: Vector2, stats: EnemyStats)
@@ -295,11 +300,25 @@ func _draw() -> void:
 		if fading and not _matches_phase(stats, night):
 			color.a = 0.35
 
-		# Fantasma lento de día.
-		if _type[i] == ghost_enemy_type_index and fantasma_lento_frames != null:
-			_draw_ghost(p, center, color)
+		# Fantasma Lento Día
+		if _type[i] == 0 and fantasma_lento_frames != null:
+			_draw_ghost(p, center, color, fantasma_lento_frames)
 			continue
 
+		# Fantasma Veloz Día
+		if _type[i] == 1 and fantasma_veloz_dia_frames != null:
+			_draw_ghost(p, center, Color.WHITE, fantasma_veloz_dia_frames)
+			continue
+		
+		# Fantasma Lento Noche
+		if _type[i] == 2 and fantasma_lento_noche_frames != null:
+			_draw_ghost(p, center, Color.WHITE, fantasma_lento_noche_frames)
+			continue
+			
+		# Fantasma Veloz Noche
+		if _type[i] == 3 and fantasma_veloz_noche_frames != null:
+			_draw_ghost(p, center, Color.WHITE, fantasma_veloz_noche_frames)
+			continue
 		# Resto de enemigos.
 		var s := stats.size
 
@@ -316,11 +335,14 @@ func _draw() -> void:
 # ANIMACIÓN DEL FANTASMA LENTO
 # -------------------------------------------------------------------
 
-func _draw_ghost(p: Vector2, target: Vector2, color: Color) -> void:
+func _draw_ghost(
+	p: Vector2,
+	target: Vector2,
+	color: Color,
+	frames: SpriteFrames
+) -> void:
 
-	# Dirección del fantasma respecto al jugador.
 	var direction := target - p
-
 	var facing := "right"
 
 	if absf(direction.x) > absf(direction.y):
@@ -328,31 +350,25 @@ func _draw_ghost(p: Vector2, target: Vector2, color: Color) -> void:
 	else:
 		facing = "down" if direction.y >= 0.0 else "up"
 
-	# Nombres EXACTOS de las animaciones de tu SpriteFrames.
 	var animation_name := "move_" + facing
 
-	# Comprobar que la animación exista.
-	if not fantasma_lento_frames.has_animation(animation_name):
-		push_warning("No existe la animación: " + animation_name)
+	if not frames.has_animation(animation_name):
 		return
 
-	var frame_count := fantasma_lento_frames.get_frame_count(animation_name)
+	var frame_count := frames.get_frame_count(animation_name)
 
 	if frame_count <= 0:
 		return
 
-	# Velocidad configurada en SpriteFrames (8 FPS según tu captura).
-	var fps := fantasma_lento_frames.get_animation_speed(animation_name)
-
+	var fps := frames.get_animation_speed(animation_name)
 	fps *= ghost_animation_speed
 
 	if fps <= 0.0:
 		fps = 1.0
 
-	# Calcular fotograma actual.
 	var frame_index := int(_time * fps) % frame_count
 
-	var texture := fantasma_lento_frames.get_frame_texture(
+	var texture := frames.get_frame_texture(
 		animation_name,
 		frame_index
 	)
@@ -360,7 +376,6 @@ func _draw_ghost(p: Vector2, target: Vector2, color: Color) -> void:
 	if texture == null:
 		return
 
-	# Dibujar el fantasma centrado.
 	draw_texture_rect(
 		texture,
 		Rect2(
@@ -370,7 +385,6 @@ func _draw_ghost(p: Vector2, target: Vector2, color: Color) -> void:
 		false,
 		color
 	)
-
 
 # -------------------------------------------------------------------
 # API PARA ARMAS, XP Y DAÑO

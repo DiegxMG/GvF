@@ -8,9 +8,12 @@
 [ext_resource type="Resource" uid="uid://duikrgtgl3m03" path="res://resources/stats_enemies/ghost_slow_day.tres" id="4_0n1be"]
 [ext_resource type="SpriteFrames" uid="uid://cxjylelyk7i3c" path="res://assets/sprites/fantasmas/fantasma_lento_dia/fantasma_lento_frames.tres" id="4_qc5wv"]
 [ext_resource type="Resource" uid="uid://ucgy8sxpcwix" path="res://resources/stats_enemies/ghost_fast_day.tres" id="5_q1kd2"]
+[ext_resource type="SpriteFrames" uid="uid://ct66o5hr743bl" path="res://assets/sprites/fantasmas/FantasmaVeloz_dia/fantasma_veloz_dia_frames.tres" id="5_vj61e"]
+[ext_resource type="SpriteFrames" uid="uid://x0vxf476soek" path="res://assets/sprites/fantasmas/fantasma_noche1/fantasma_lento_noche_frames.tres" id="6_7mbce"]
 [ext_resource type="Resource" uid="uid://cfk6i22mgcks7" path="res://resources/stats_enemies/ghost_slow_night.tres" id="6_op0be"]
 [ext_resource type="Script" uid="uid://g65qk7sbksaj" path="res://ui/game_over.gd" id="7_0n1be"]
 [ext_resource type="Resource" uid="uid://b76svlwc4j6oi" path="res://resources/stats_enemies/ghost_fast_night.tres" id="7_w3kvc"]
+[ext_resource type="SpriteFrames" uid="uid://dgvr6dynrk7jl" path="res://assets/sprites/fantasmas/fantasma_noche2/fantasma_veloz_noche_frames.tres" id="7_yg8gp"]
 [ext_resource type="Script" uid="uid://1axuke333eyj" path="res://systems/day_night_tint.gd" id="10_dsm5r"]
 [ext_resource type="Script" uid="uid://clukm26uygtuv" path="res://ui/damage_numbers.gd" id="10_qo83i"]
 [ext_resource type="Script" uid="uid://c6xirb8auqe33" path="res://ui/hud/hud_top_bar.gd" id="12_ntnhp"]
@@ -37,8 +40,25 @@ radius_per_tier = null
 [node name="EnemyManager" type="Node2D" parent="." unique_id=547259314 node_paths=PackedStringArray("player")]
 script = ExtResource("2_uds71")
 fantasma_lento_frames = ExtResource("4_qc5wv")
+fantasma_veloz_dia_frames = ExtResource("5_vj61e")
+ghost_enemy_type_index = null
+fantasma_lento_noche_frames = ExtResource("6_7mbce")
+fantasma_veloz_noche_frames = ExtResource("7_yg8gp")
 player = NodePath("../Player")
 enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2"), ExtResource("6_op0be"), ExtResource("7_w3kvc")])
+max_enemies = null
+start_spawn_rate = null
+spawn_rate_growth = null
+max_spawn_rate = null
+health_growth_per_minute = null
+day_spawn_multiplier = null
+night_spawn_multiplier = null
+phase_vanish_time = null
+spawn_margin = null
+despawn_factor = null
+player_radius = null
+ghost_sprite_size = null
+ghost_animation_speed = null
 
 [node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]
 speed = 250.0

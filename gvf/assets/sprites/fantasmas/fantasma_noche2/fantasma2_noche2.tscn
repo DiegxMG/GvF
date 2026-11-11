@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://bv7x7h6r74p4b"]
+
+[ext_resource type="SpriteFrames" uid="uid://dgvr6dynrk7jl" path="res://assets/sprites/fantasmas/fantasma_noche2/fantasma_veloz_noche_frames.tres" id="1_8dubw"]
+
+[node name="fantasma2_noche" type="CharacterBody2D" unique_id=1808935534]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=723787094]
+sprite_frames = ExtResource("1_8dubw")
+animation = &"move_down"
+frame_progress = 0.033375997
