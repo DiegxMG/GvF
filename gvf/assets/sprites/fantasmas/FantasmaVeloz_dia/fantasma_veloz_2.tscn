@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://be48w0q1cp8v2"]
+
+[ext_resource type="SpriteFrames" uid="uid://ct66o5hr743bl" path="res://assets/sprites/fantasmas/FantasmaVeloz_dia/fantasma_veloz_dia_frames.tres" id="1_8vfqk"]
+
+[node name="FantasmaVeloz2" type="CharacterBody2D" unique_id=632930438]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=75144950]
+sprite_frames = ExtResource("1_8vfqk")
+animation = &"hurt"
+frame_progress = 0.98697126

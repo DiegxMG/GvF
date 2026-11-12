@@ -16,10 +16,13 @@ signal enemy_damaged(position: Vector2, amount: float)
 ## xp (con el bono de su nivel de fuerza), coin_chance (idem) y tier (0 = sencillo).
 signal enemy_died(position: Vector2, stats: EnemyStats, xp: int, coin_chance: float, tier: int)
 
-# Recurso SpriteFrames del Fantasma Lento.
+# Recursos de las cuatro variantes de fantasmas.
 @export var fantasma_lento_frames: SpriteFrames
+@export var fantasma_veloz_dia_frames: SpriteFrames
+@export var fantasma_lento_noche_frames: SpriteFrames
+@export var fantasma_veloz_noche_frames: SpriteFrames
 
-# Índice del fantasma dentro de enemy_types.
+# Índice original del fantasma lento en Enemy Types.
 @export var ghost_enemy_type_index: int = 0
 
 @export var player: Node2D
@@ -367,12 +370,25 @@ func _draw() -> void:
 			color.a = 0.35
 			outline.a *= 0.35
 
-		# Dibujar el fantasma mediante su SpriteFrames.
-		if _type[i] == ghost_enemy_type_index and fantasma_lento_frames != null:
-			_draw_ghost(p, center, color, outline)
+		# Seleccionar el recurso de animación según el tipo de enemigo.
+		var frames: SpriteFrames = null
+		match _type[i]:
+			0:
+				frames = fantasma_lento_frames
+			1:
+				frames = fantasma_veloz_dia_frames
+			2:
+				frames = fantasma_lento_noche_frames
+			3:
+				frames = fantasma_veloz_noche_frames
+
+		if frames != null:
+			# Blanco conserva el color original de los sprites.
+			var sprite_color := Color(1.0, 1.0, 1.0, color.a)
+			_draw_ghost(p, center, sprite_color, frames, outline)
 			continue
 
-		# Los demás enemigos conservan su dibujo geométrico.
+		# Resto de enemigos.
 		var s := stats.size
 
 		if outline.a > 0.0:
@@ -392,109 +408,57 @@ func _draw() -> void:
 # ANIMACIÓN DEL FANTASMA
 # -----------------------------------------------------------------
 
-func _draw_ghost(p: Vector2, target: Vector2, color: Color, outline: Color) -> void:
-	var animations := fantasma_lento_frames.get_animation_names()
-
-	if animations.is_empty():
-		return
-
-	# Determinar la dirección hacia el jugador.
+func _draw_ghost(
+	p: Vector2,
+	target: Vector2,
+	color: Color,
+	frames: SpriteFrames,
+	outline: Color
+) -> void:
 	var direction := target - p
-
 	var facing := "right"
-
 	if absf(direction.x) > absf(direction.y):
 		facing = "right" if direction.x >= 0.0 else "left"
 	else:
 		facing = "down" if direction.y >= 0.0 else "up"
 
-	# Buscar primero una animación específica para esa dirección.
-	var animation_name := ""
+	var animation_name := "move_" + facing
+	if not frames.has_animation(animation_name):
+		if frames.has_animation("move"):
+			animation_name = "move"
+		else:
+			return
 
-	var directional_animation := "move_" + facing
-
-	if fantasma_lento_frames.has_animation(directional_animation):
-		animation_name = directional_animation
-
-	# Si no existe, buscar una animación general de movimiento.
-	elif fantasma_lento_frames.has_animation("move"):
-		animation_name = "move"
-
-	# Como último recurso, utilizar la primera animación disponible.
-	else:
-		animation_name = animations[0]
-
-	# Si utilizamos una animación única, podemos rotarla.
-	var use_rotation := (
-		animation_name == "move"
-		or not fantasma_lento_frames.has_animation(directional_animation)
-	)
-
-	var frame_count := fantasma_lento_frames.get_frame_count(animation_name)
-
+	var frame_count := frames.get_frame_count(animation_name)
 	if frame_count <= 0:
 		return
 
-	var fps := fantasma_lento_frames.get_animation_speed(animation_name)
-
+	var fps := frames.get_animation_speed(animation_name) * ghost_animation_speed
 	if fps <= 0.0:
 		fps = 1.0
 
-	# Velocidad de reproducción.
-	fps *= ghost_animation_speed
-
-	# Obtener fotograma según el tiempo transcurrido.
 	var frame_index := int(_time * fps) % frame_count
-
-	var texture := fantasma_lento_frames.get_frame_texture(
-		animation_name,
-		frame_index
-	)
-
+	var texture := frames.get_frame_texture(animation_name, frame_index)
 	if texture == null:
 		return
 
-	var sprite_rotation := 0.0
+	var rect := Rect2(p - ghost_sprite_size * 0.5, ghost_sprite_size)
 
-	if use_rotation:
-		match facing:
-			"left":
-				sprite_rotation = PI
+	# Dibujar un contorno sencillo para los fantasmas fuertes.
+	if outline.a > 0.0 and outline_width > 0.0:
+		var offsets := [
+			Vector2(-outline_width, 0.0),
+			Vector2(outline_width, 0.0),
+			Vector2(0.0, -outline_width),
+			Vector2(0.0, outline_width)
+		]
+		for offset in offsets:
+			draw_texture_rect(texture, Rect2(rect.position + offset, rect.size), false, outline)
 
-			"up":
-				sprite_rotation = -PI / 2.0
-
-			"down":
-				sprite_rotation = PI / 2.0
-
-	# Dibujar el sprite centrado en su posición.
-	draw_set_transform(p, sprite_rotation, Vector2.ONE)
-
-	# Contorno: el mismo sprite, un poco más grande, teñido del color de fuerza.
-	if outline.a > 0.0:
-		var grow := Vector2(outline_width, outline_width) * 2.0
-		draw_texture_rect(
-			texture,
-			Rect2(-(ghost_sprite_size + grow) * 0.5, ghost_sprite_size + grow),
-			false,
-			outline
-		)
-
-	draw_texture_rect(
-		texture,
-		Rect2(
-			-ghost_sprite_size * 0.5,
-			ghost_sprite_size
-		),
-		false,
-		color
-	)
-
-	# Restaurar transformación.
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	draw_texture_rect(texture, rect, false, color)
 
 
-# -----------------------------------------------------------------
+# -------------------------------------------------------------------
 # API PARA ARMAS, XP Y DAÑO
 # -----------------------------------------------------------------
 

@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://c4kuw61r4xl7w"]
+
+[ext_resource type="SpriteFrames" uid="uid://x0vxf476soek" path="res://assets/sprites/fantasmas/fantasma_noche1/fantasma_lento_noche_frames.tres" id="1_7id0v"]
+
+[node name="fanatasmaNoche1" type="CharacterBody2D" unique_id=1062816243]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1286589622]
+sprite_frames = ExtResource("1_7id0v")
+animation = &"hurt"
+frame_progress = 0.30564672
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=977934296]
