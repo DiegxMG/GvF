@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://bisv8xl61f1ts"]
+
+[ext_resource type="Script" uid="uid://dxp6fngkho5kd" path="res://ui/pause_menu/pause_menu.gd" id="1_k6boa"]
+
+[node name="PauseMenu" type="CanvasLayer" unique_id=1837675529]
+process_mode = 3
+script = ExtResource("1_k6boa")
+
+[node name="Overlay" type="ColorRect" parent="." unique_id=1219286589]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0627451, 0.043137256, 0.10980392, 0.7019608)
+
+[node name="MenuButtons" type="VBoxContainer" parent="Overlay" unique_id=535676123]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 500.0
+offset_right = 560.0
+offset_bottom = 890.0
+theme_override_constants/separation = 20
+
+[node name="PauseTitle" type="Label" parent="Overlay/MenuButtons" unique_id=508931557]
+layout_mode = 2
+text = "PAUSA"
+
+[node name="ContinueButton" type="Button" parent="Overlay/MenuButtons" unique_id=220578070]
+layout_mode = 2
+text = "CONTINUAR"
+
+[node name="RestartButton" type="Button" parent="Overlay/MenuButtons" unique_id=510096959]
+layout_mode = 2
+text = "REINICIAR"
+
+[node name="VolumeLabel" type="Label" parent="Overlay/MenuButtons" unique_id=1483426245]
+layout_mode = 2
+text = "VOLUMEN"
+
+[node name="VolumeSlider" type="HSlider" parent="Overlay/MenuButtons" unique_id=508887585]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="ExitButton" type="Button" parent="Overlay/MenuButtons" unique_id=650621281]
+layout_mode = 2
+text = "SALIR"
+
+[node name="PauseButton" type="Button" parent="." unique_id=2122287943]
+offset_left = 625.0
+offset_top = 25.0
+offset_right = 690.0
+offset_bottom = 90.0
+text = "Ⅱ"
+
+[connection signal="pressed" from="Overlay/MenuButtons/ContinueButton" to="." method="_on_continue_button_pressed"]
+[connection signal="pressed" from="Overlay/MenuButtons/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="value_changed" from="Overlay/MenuButtons/VolumeSlider" to="." method="_on_volume_slider_value_changed"]
+[connection signal="pressed" from="Overlay/MenuButtons/ExitButton" to="." method="_on_exit_button_pressed"]
+[connection signal="pressed" from="PauseButton" to="." method="_on_pause_button_pressed"]

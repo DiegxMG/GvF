@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="gvf"
-run/main_scene="uid://dxeqbsv0p0g8v"
+run/main_scene="uid://cgrv6kd0hujch"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 

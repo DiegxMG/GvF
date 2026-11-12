@@ -18,6 +18,7 @@
 [ext_resource type="Script" uid="uid://cvontvgr1603k" path="res://ui/TouchJoystick.gd" id="13_c4v46"]
 [ext_resource type="Script" uid="uid://bf5blok2tn2o0" path="res://ui/upgrade_menu.gd" id="15_vj61e"]
 [ext_resource type="Script" uid="uid://cpc6l1p7asfc1" path="res://modes/arcade/arcade_session.gd" id="18_vj61e"]
+[ext_resource type="PackedScene" uid="uid://bisv8xl61f1ts" path="res://ui/pause_menu/PauseMenu.tscn" id="19_7mbce"]
 
 [node name="World" type="Node2D" unique_id=29999533]
 
@@ -70,3 +71,5 @@ script = ExtResource("7_0n1be")
 
 [node name="ArcadeSession" type="Node" parent="." unique_id=77390222]
 script = ExtResource("18_vj61e")
+
+[node name="PauseMenu" parent="." unique_id=1837675529 instance=ExtResource("19_7mbce")]
