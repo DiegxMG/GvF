@@ -41,10 +41,11 @@ func _build_ui() -> void:
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 60)
-	margin.add_theme_constant_override("margin_bottom", 60)
+	var insets := SafeArea.get_insets(self, 24.0, 40.0, 24.0)
+	margin.add_theme_constant_override("margin_left", int(insets.x))
+	margin.add_theme_constant_override("margin_right", int(insets.z))
+	margin.add_theme_constant_override("margin_top", int(insets.y) + 30)
+	margin.add_theme_constant_override("margin_bottom", int(insets.w) + 40)
 	root.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 

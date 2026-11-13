@@ -52,7 +52,7 @@ func _input(event: InputEvent) -> void:
 		var touch := event as InputEventScreenTouch
 		if touch.pressed:
 			# Solo el primer dedo controla el joystick.
-			if _touch_index == -1 and touch.position.y > ignore_top:
+			if _touch_index == -1 and touch.position.y > ignore_top + SafeArea.get_insets(self, 0.0, 16.0).y:
 				_start(touch.index, touch.position)
 		elif touch.index == _touch_index:
 			_stop()

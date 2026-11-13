@@ -14,7 +14,10 @@ enum ActiveTime { ALWAYS, DAY, NIGHT }
 @export var size: float = 28.0
 @export var color: Color = Color.WHITE
 
-@export_group("Monedas")
+@export_group("Recompensas")
+## Probabilidad (de 0 a 1) de que suelte un orbe de XP al morir. 0.45 = 45 %.
+## Los fantasmas fuertes (con contorno de color) suman un bono a esta probabilidad.
+@export_range(0.0, 1.0, 0.01) var xp_drop_chance: float = 0.45
 ## Probabilidad (de 0 a 1) de soltar una moneda al morir. 0.05 = 5 %.
 @export_range(0.0, 1.0, 0.001) var coin_chance: float = 0.02
 ## Valor base de la moneda que suelta.
@@ -23,7 +26,11 @@ enum ActiveTime { ALWAYS, DAY, NIGHT }
 @export_group("Aparición")
 ## ALWAYS = todo el tiempo, DAY = solo de día, NIGHT = solo de noche.
 @export var active_time: ActiveTime = ActiveTime.ALWAYS
+## Primer día de la partida en que puede aparecer (1 = desde el principio).
+## Ejemplo: un fantasma de día con First Day 2 sale desde el día 2; uno de noche
+## con First Day 2 sale desde la noche 2.
+@export var first_day: int = 1
 ## Qué tan frecuente es frente a los otros tipos.
 @export var spawn_weight: float = 1.0
-## Segundos de partida a partir de los cuales puede aparecer.
+## Segundos de partida a partir de los cuales puede aparecer (además del día).
 @export var appears_at_time: float = 0.0

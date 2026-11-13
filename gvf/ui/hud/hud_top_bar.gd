@@ -7,6 +7,9 @@ extends CanvasLayer
 ##   - fila de 6 casillas de armas
 ##   - fila de 3 casillas de modificadores de la partida
 ## Se construye solo, por código. Colores y fuente salen de GameTheme.
+##
+## ZONA SEGURA: el contenido deja un margen para que no lo tapen las esquinas
+## redondeadas, la cámara frontal ni las barras del sistema (ver SafeArea).
 
 ## Símbolos provisionales de los contadores. Más adelante se reemplazan por
 ## iconos (una calavera y una moneda).
@@ -22,9 +25,18 @@ const SLOT_GAP := 4.0
 @export var xp_back_color: Color = Color(0.08, 0.03, 0.16, 0.85)
 @export var xp_border_color: Color = Color(0.78, 0.65, 1.0)
 
+@export_group("Márgenes de seguridad")
+## Margen mínimo a los lados, para las esquinas redondeadas. Súbelo si en tu
+## celular todavía se corta algo; bájalo si sobra espacio.
+@export var min_side_margin: float = 30.0
+## Margen mínimo arriba (el sistema suma el suyo si hay cámara o barra de estado).
+@export var min_top_margin: float = 16.0
+
 ## Contenedor de las casillas (por si se quiere mover o ampliar).
 var items_area: Control
 
+var _band: ColorRect
+var _content: Control
 var _xp_bar: ProgressBar
 var _level_label: Label
 var _time_label: Label
@@ -43,13 +55,19 @@ func _ready() -> void:
 	add_child(root)
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	# Franja semitransparente
-	var back := ColorRect.new()
-	back.color = background_color
-	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	back.custom_minimum_size = Vector2(0.0, bar_height)
-	root.add_child(back)
-	back.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE)
+	# Franja semitransparente: llega hasta los bordes de la pantalla.
+	_band = ColorRect.new()
+	_band.color = background_color
+	_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_band.custom_minimum_size = Vector2(0.0, bar_height)
+	root.add_child(_band)
+	_band.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE)
+
+	# Todo lo demás va en un contenedor que respeta la zona segura.
+	_content = Control.new()
+	_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_content)
+	_content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	# Barra de experiencia (morada)
 	_xp_bar = ProgressBar.new()
@@ -61,8 +79,8 @@ func _ready() -> void:
 	_xp_bar.custom_minimum_size = Vector2(0.0, 26.0)
 	_xp_bar.add_theme_stylebox_override("background", GameTheme.make_box(xp_back_color, xp_border_color, 2, 6))
 	_xp_bar.add_theme_stylebox_override("fill", GameTheme.make_box(xp_fill_color, Color(0.0, 0.0, 0.0, 0.0), 0, 6))
-	root.add_child(_xp_bar)
-	_xp_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE, 8)
+	_content.add_child(_xp_bar)
+	_xp_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE, 0)
 
 	# Nivel, dentro de la barra, a la derecha
 	_level_label = _make_label(18, GameTheme.TEXT)
@@ -70,44 +88,56 @@ func _ready() -> void:
 	_level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_xp_bar.add_child(_level_label)
 	_level_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_level_label.offset_right = -10.0
+	_level_label.offset_right = -12.0
 
 	# Tiempo de partida
 	_time_label = _make_label(34, GameTheme.TEXT)
 	_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	root.add_child(_time_label)
+	_content.add_child(_time_label)
 	_time_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	_time_label.offset_top = 40.0
-	_time_label.offset_bottom = 82.0
+	_time_label.offset_top = 34.0
+	_time_label.offset_bottom = 76.0
 
 	# Día / noche
 	_phase_label = _make_label(18, GameTheme.GREEN)
 	_phase_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	root.add_child(_phase_label)
+	_content.add_child(_phase_label)
 	_phase_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	_phase_label.offset_top = 84.0
-	_phase_label.offset_bottom = 110.0
+	_phase_label.offset_top = 78.0
+	_phase_label.offset_bottom = 104.0
 
 	# Contadores a la derecha: enemigos eliminados y monedas
-	_kills_label = _make_counter(root, 40.0, GameTheme.TEXT)
-	_coins_label = _make_counter(root, 76.0, GameTheme.GOLD)
+	_kills_label = _make_counter(34.0, GameTheme.TEXT)
+	_coins_label = _make_counter(70.0, GameTheme.GOLD)
 
 	# Mostrador de equipo: armas arriba, modificadores abajo
 	items_area = Control.new()
 	items_area.name = "ItemsArea"
 	items_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(items_area)
-	items_area.position = Vector2(8.0, 42.0)
+	_content.add_child(items_area)
+	items_area.position = Vector2(0.0, 36.0)
 	items_area.size = Vector2(6.0 * (SLOT_SIZE + SLOT_GAP), 2.0 * SLOT_SIZE + SLOT_GAP)
 	for i in PlayerEquipment.MAX_WEAPON_SLOTS:
 		_weapon_slots.append(_make_slot(Vector2(i * (SLOT_SIZE + SLOT_GAP), 0.0)))
 	for i in PlayerEquipment.MAX_MODIFIER_SLOTS:
 		_modifier_slots.append(_make_slot(Vector2(i * (SLOT_SIZE + SLOT_GAP), SLOT_SIZE + SLOT_GAP)))
 
+	_apply_safe_area()
+	get_viewport().size_changed.connect(_apply_safe_area)
+
 	_on_kills_changed(0)
 	_on_coins_changed(0)
 	_refresh_slots()
 	_connect_signals.call_deferred()
+
+
+# Deja el margen necesario a los lados y arriba (esquinas redondeadas, cámara, barras).
+func _apply_safe_area() -> void:
+	var insets := SafeArea.get_insets(self, min_side_margin, min_top_margin)
+	_content.offset_left = insets.x
+	_content.offset_top = insets.y
+	_content.offset_right = -insets.z
+	_band.offset_bottom = bar_height + insets.y
 
 
 func _connect_signals() -> void:
@@ -229,13 +259,13 @@ func _refresh_slots() -> void:
 
 # --- Utilidades de interfaz ------------------------------------------------------------------
 
-func _make_counter(root: Control, top: float, color: Color) -> Label:
+func _make_counter(top: float, color: Color) -> Label:
 	var label := _make_label(24, color)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	root.add_child(label)
+	_content.add_child(label)
 	label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	label.offset_left = -170.0
-	label.offset_right = -12.0
+	label.offset_right = 0.0
 	label.offset_top = top
 	label.offset_bottom = top + 32.0
 	return label

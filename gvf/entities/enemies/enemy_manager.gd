@@ -3,9 +3,12 @@ extends Node2D
 ## Gestiona todos los enemigos mediante arreglos, sin crear un nodo por enemigo.
 ## Los enemigos activos ocupan los índices 0 .. _count - 1.
 ##
+## Progresión: cada tipo de enemigo tiene un primer día en que puede aparecer
+## (EnemyStats.first_day) y la cantidad de enemigos sube poco a poco.
+##
 ## Fantasmas fuertes: con el paso del tiempo empiezan a salir fantasmas con un
-## contorno de color (verde, azul, amarillo, rojo) que tienen más vida, hacen
-## más daño y dan más XP y monedas. Los fantasmas sencillos (sin contorno)
+## MARCO de color alrededor (verde, azul, amarillo, rojo) que tienen más vida,
+## hacen más daño y dan más XP y monedas. Los fantasmas sencillos (sin marco)
 ## nunca dejan de salir.
 
 ## Se emite al morir un enemigo por un ataque.
@@ -13,8 +16,27 @@ signal enemy_killed(position: Vector2, xp: int)
 ## Se emite cada vez que un ataque daña a un enemigo (números de daño).
 signal enemy_damaged(position: Vector2, amount: float)
 ## Se emite al morir un enemigo, con su recompensa ya calculada:
-## xp (con el bono de su nivel de fuerza), coin_chance (idem) y tier (0 = sencillo).
+## xp (0 si esta vez no suelta experiencia), coin_chance y tier (0 = sencillo).
 signal enemy_died(position: Vector2, stats: EnemyStats, xp: int, coin_chance: float, tier: int)
+
+const FACE_RIGHT := 0
+const FACE_DOWN := 1
+const FACE_LEFT := 2
+const FACE_UP := 3
+
+## El marco se dibuja copiando la silueta del sprite en estas 4 direcciones.
+const OUTLINE_OFFSETS: Array[Vector2] = [
+	Vector2(1.0, 1.0), Vector2(-1.0, 1.0), Vector2(1.0, -1.0), Vector2(-1.0, -1.0)]
+
+## Dibuja los marcos de color DETRÁS de los fantasmas. Usa un material propio
+## que pinta la silueta del sprite de un solo color (así el marco se ve aunque
+## el sprite tenga bordes oscuros).
+class OutlineLayer extends Node2D:
+	var manager: EnemyManager
+
+	func _draw() -> void:
+		if manager != null:
+			manager._draw_outlines(self)
 
 # Recursos de las cuatro variantes de fantasmas.
 @export var fantasma_lento_frames: SpriteFrames
@@ -29,17 +51,19 @@ signal enemy_died(position: Vector2, stats: EnemyStats, xp: int, coin_chance: fl
 @export var enemy_types: Array[EnemyStats] = []
 
 @export_group("Límites")
-@export var max_enemies: int = 600
+@export var max_enemies: int = 250
 
 @export_group("Dificultad (modo Arcade)")
-@export var start_spawn_rate: float = 1.5
-@export var spawn_rate_growth: float = 0.05
-@export var max_spawn_rate: float = 30.0
+## Enemigos por segundo al empezar, y cuánto sube esa cantidad cada segundo.
+## Con 0.7 y 0.003: ~1.6 por segundo a los 5 min, ~2.5 a los 10 y ~4.3 a los 20.
+@export var start_spawn_rate: float = 0.7
+@export var spawn_rate_growth: float = 0.003
+@export var max_spawn_rate: float = 6.0
 @export var health_growth_per_minute: float = 0.3
 
 @export_group("Día y noche")
 @export var day_spawn_multiplier: float = 1.0
-@export var night_spawn_multiplier: float = 1.5
+@export var night_spawn_multiplier: float = 1.25
 @export var phase_vanish_time: float = 3.0
 
 @export_group("Distancias")
@@ -50,11 +74,17 @@ signal enemy_died(position: Vector2, stats: EnemyStats, xp: int, coin_chance: fl
 @export var player_radius: float = 16.0
 
 @export_group("Sprites")
-@export var ghost_sprite_size: Vector2 = Vector2(64.0, 64.0)
+## Tamaño visual de cada fantasma (en unidades del mundo), por índice de Enemy Types:
+## [lento de día, rápido de día, lento de noche, rápido de noche].
+## Es el lado MÁS LARGO del sprite: se conserva su proporción, no se deforma.
+@export var sprite_sizes: Array[float] = [52.0, 64.0, 76.0, 76.0]
 @export var ghost_animation_speed: float = 1.0
+## true si el arte original de los fantasmas mira hacia la derecha.
+## Solo se usa cuando falta una animación direccional y hay que voltear el sprite.
+@export var sprites_face_right: bool = true
 
-@export_group("Fantasmas fuertes (contornos)")
-## Color del contorno de cada nivel de fuerza. El 0 es el sencillo: sin contorno.
+@export_group("Fantasmas fuertes (marco de color)")
+## Color del marco de cada nivel de fuerza. El 0 es el sencillo: sin marco.
 @export var tier_colors: Array[Color] = [
 	Color(0.0, 0.0, 0.0, 0.0),
 	Color(0.35, 1.00, 0.40), # 1: verde
@@ -63,17 +93,24 @@ signal enemy_died(position: Vector2, stats: EnemyStats, xp: int, coin_chance: fl
 	Color(1.00, 0.25, 0.25), # 4: rojo
 ]
 ## Segundo de partida desde el cual puede aparecer cada nivel.
-@export var tier_start_time: Array[float] = [0.0, 120.0, 240.0, 420.0, 600.0]
+@export var tier_start_time: Array[float] = [0.0, 180.0, 360.0, 600.0, 900.0]
 ## Frecuencia de cada nivel (el 0, sencillo, siempre conserva su peso completo).
-@export var tier_weight: Array[float] = [10.0, 4.0, 2.5, 1.5, 1.0]
+@export var tier_weight: Array[float] = [10.0, 3.0, 2.0, 1.0, 0.7]
 ## Segundos que tarda cada nivel en llegar a su frecuencia completa desde que aparece.
-@export var tier_ramp_time: float = 90.0
+@export var tier_ramp_time: float = 120.0
 ## Multiplicadores por nivel de fuerza.
 @export var tier_health_mult: Array[float] = [1.0, 1.6, 2.5, 4.0, 7.0]
 @export var tier_damage_mult: Array[float] = [1.0, 1.15, 1.3, 1.6, 2.0]
 @export var tier_xp_mult: Array[float] = [1.0, 1.5, 2.0, 3.0, 5.0]
 @export var tier_coin_mult: Array[float] = [1.0, 1.5, 2.0, 3.0, 4.0]
-@export var outline_width: float = 2.5
+## Bono a la probabilidad de soltar XP (se suma a la del tipo de enemigo).
+@export var tier_xp_drop_bonus: Array[float] = [0.0, 0.10, 0.20, 0.30, 0.45]
+
+@export_subgroup("Aspecto del marco")
+## Grosor del marco, en unidades del mundo. Sube el número para un marco más grueso.
+@export var outline_width: float = 3.0
+## Cuánto se tiñe el propio sprite del color de su fuerza (0 = nada, 1 = todo).
+@export_range(0.0, 1.0, 0.01) var tint_amount: float = 0.2
 
 var _pos := PackedVector2Array()
 var _hp := PackedFloat32Array()
@@ -86,6 +123,13 @@ var _spawn_accum: float = 0.0
 var _purge_left: float = 0.0
 
 var _player_health: PlayerHealth
+var _outline_layer: OutlineLayer
+# Animaciones ya preparadas (evita recalcular nombres y texturas en cada frame).
+var _anim_cache: Dictionary = {}
+# Sprite preparado por _prepare_ghost_sprite() (se guarda aquí para no crear objetos por frame).
+var _sp_texture: Texture2D
+var _sp_size := Vector2.ZERO
+var _sp_flip: bool = false
 
 
 func _ready() -> void:
@@ -100,6 +144,8 @@ func _ready() -> void:
 	_type.resize(max_enemies)
 	_tier.resize(max_enemies)
 
+	_build_outline_layer()
+
 	TimeManager.phase_changed.connect(_on_phase_changed)
 
 	if player == null:
@@ -111,15 +157,59 @@ func _ready() -> void:
 	if enemy_types.is_empty():
 		push_warning("EnemyManager: agrega EnemyStats.")
 
-	if fantasma_lento_frames == null:
-		push_warning("EnemyManager: asigna el recurso SpriteFrames del fantasma.")
-	else:
-		var animations := fantasma_lento_frames.get_animation_names()
+	_report_frames("lento de día", fantasma_lento_frames)
+	_report_frames("rápido de día", fantasma_veloz_dia_frames)
+	_report_frames("lento de noche", fantasma_lento_noche_frames)
+	_report_frames("rápido de noche", fantasma_veloz_noche_frames)
 
-		if animations.is_empty():
-			push_warning("EnemyManager: el SpriteFrames no contiene animaciones.")
-		else:
-			print("Animaciones del fantasma: ", animations)
+
+# Capa que pinta los marcos de color detrás de los fantasmas.
+func _build_outline_layer() -> void:
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+varying vec4 tint;
+void vertex() {
+	tint = COLOR;
+}
+void fragment() {
+	// Silueta de un solo color: usa solo la forma (alfa) del sprite.
+	float a = texture(TEXTURE, UV).a;
+	COLOR = vec4(tint.rgb, tint.a * a);
+}
+"""
+	var material := ShaderMaterial.new()
+	material.shader = shader
+
+	_outline_layer = OutlineLayer.new()
+	_outline_layer.manager = self
+	_outline_layer.material = material
+	_outline_layer.show_behind_parent = true
+	add_child(_outline_layer)
+
+
+# Informa en la salida qué animaciones tiene cada fantasma y cuáles le faltan.
+func _report_frames(label: String, frames: SpriteFrames) -> void:
+	if frames == null:
+		push_warning("EnemyManager: falta el SpriteFrames del fantasma %s." % label)
+		return
+
+	var names := frames.get_animation_names()
+
+	if names.is_empty():
+		push_warning("EnemyManager: el SpriteFrames del fantasma %s no tiene animaciones." % label)
+		return
+
+	var missing: Array[String] = []
+
+	for anim_name in ["move_up", "move_down", "move_left", "move_right"]:
+		if not frames.has_animation(anim_name):
+			missing.append(anim_name)
+
+	if missing.is_empty():
+		print("Fantasma %s: animaciones %s" % [label, names])
+	else:
+		print("Fantasma %s: animaciones %s | faltan %s (se usarán las horizontales)" % [label, names, missing])
 
 
 func _physics_process(delta: float) -> void:
@@ -135,6 +225,7 @@ func _physics_process(delta: float) -> void:
 	_move_enemies(delta, target)
 
 	queue_redraw()
+	_outline_layer.queue_redraw()
 
 
 # -----------------------------------------------------------------
@@ -233,8 +324,13 @@ func _pick_type() -> int:
 	return -1
 
 
+# Un tipo puede aparecer si ya llegó su día, su tiempo y es su horario (día/noche).
 func _can_spawn(stats: EnemyStats, night: bool) -> bool:
-	return _time >= stats.appears_at_time and _matches_phase(stats, night)
+	return (
+		TimeManager.day_number >= stats.first_day
+		and _time >= stats.appears_at_time
+		and _matches_phase(stats, night)
+	)
 
 
 ## Elige el nivel de fuerza de un enemigo nuevo. Los niveles fuertes aparecen
@@ -284,6 +380,7 @@ func _spawn_radius() -> float:
 	return get_viewport_rect().size.length() * 0.5 + spawn_margin
 
 
+# Los enemigos aparecen en un anillo justo fuera de la pantalla, en cualquier ángulo.
 func _random_ring_position(center: Vector2) -> Vector2:
 	var angle := randf() * TAU
 	var radius := _spawn_radius() * randf_range(1.0, 1.15)
@@ -358,41 +455,41 @@ func _draw() -> void:
 			continue
 
 		var stats := enemy_types[_type[i]]
-		var color := stats.color
 
-		# Contorno según su nivel de fuerza (el 0 no tiene).
-		var tier: int = _tier[i]
-		var outline := Color(0.0, 0.0, 0.0, 0.0)
-		if tier > 0 and tier < tier_colors.size():
-			outline = tier_colors[tier]
-
+		# Los del horario anterior se ven semitransparentes mientras se desvanecen.
+		var alpha := 1.0
 		if fading and not _matches_phase(stats, night):
-			color.a = 0.35
-			outline.a *= 0.35
+			alpha = 0.35
 
-		# Seleccionar el recurso de animación según el tipo de enemigo.
-		var frames: SpriteFrames = null
-		match _type[i]:
-			0:
-				frames = fantasma_lento_frames
-			1:
-				frames = fantasma_veloz_dia_frames
-			2:
-				frames = fantasma_lento_noche_frames
-			3:
-				frames = fantasma_veloz_noche_frames
+		# Marco según su nivel de fuerza (el 0 no tiene).
+		var tier: int = _tier[i]
+		var tier_color := Color(0.0, 0.0, 0.0, 0.0)
+		if tier > 0 and tier < tier_colors.size():
+			tier_color = tier_colors[tier]
+
+		var frames := _get_ghost_frames(_type[i])
 
 		if frames != null:
-			# Blanco conserva el color original de los sprites.
-			var sprite_color := Color(1.0, 1.0, 1.0, color.a)
-			_draw_ghost(p, center, sprite_color, frames, outline)
+			var tint := Color(1.0, 1.0, 1.0, alpha)
+
+			# El sprite se tiñe un poco del color de su fuerza (el marco va en OutlineLayer).
+			if tier_color.a > 0.0:
+				tint = tint.lerp(Color(tier_color.r, tier_color.g, tier_color.b, alpha), tint_amount)
+
+			if _prepare_ghost_sprite(p, center, frames, _sprite_size_for(_type[i])):
+				_draw_prepared_sprite(p, tint)
+
 			continue
 
-		# Resto de enemigos.
+		# Enemigos que siguen siendo cuadrados: el marco es un cuadrado más grande detrás.
 		var s := stats.size
+		var color := stats.color
+		color.a *= alpha
 
-		if outline.a > 0.0:
+		if tier_color.a > 0.0:
 			var big := s + outline_width * 2.0
+			var outline := tier_color
+			outline.a = alpha
 			draw_rect(Rect2(p - Vector2(big, big) * 0.5, Vector2(big, big)), outline)
 
 		draw_rect(
@@ -404,58 +501,206 @@ func _draw() -> void:
 		)
 
 
+# Pinta los marcos de color de los fantasmas con sprite. Lo llama OutlineLayer.
+func _draw_outlines(canvas: CanvasItem) -> void:
+	if player == null or outline_width <= 0.0:
+		return
+
+	var night: bool = TimeManager.is_night
+	var fading := _purge_left > 0.0
+	var center := player.global_position
+	var view_half := get_viewport_rect().size * 0.5 + Vector2(64.0, 64.0)
+
+	for i in _count:
+		var tier: int = _tier[i]
+
+		if tier <= 0 or tier >= tier_colors.size():
+			continue
+
+		var p := _pos[i]
+
+		if absf(p.x - center.x) > view_half.x or absf(p.y - center.y) > view_half.y:
+			continue
+
+		var frames := _get_ghost_frames(_type[i])
+
+		if frames == null:
+			continue
+
+		var alpha := 1.0
+		if fading and not _matches_phase(enemy_types[_type[i]], night):
+			alpha = 0.35
+
+		if not _prepare_ghost_sprite(p, center, frames, _sprite_size_for(_type[i])):
+			continue
+
+		var tier_color := tier_colors[tier]
+		var color := Color(tier_color.r, tier_color.g, tier_color.b, alpha)
+		var origin := p
+
+		if _sp_flip:
+			canvas.draw_set_transform(p, 0.0, Vector2(-1.0, 1.0))
+			origin = Vector2.ZERO
+
+		var top_left := origin - _sp_size * 0.5
+
+		for offset in OUTLINE_OFFSETS:
+			canvas.draw_texture_rect(
+				_sp_texture,
+				Rect2(top_left + offset * outline_width, _sp_size),
+				false,
+				color
+			)
+
+		if _sp_flip:
+			canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 # -----------------------------------------------------------------
 # ANIMACIÓN DEL FANTASMA
 # -----------------------------------------------------------------
 
-func _draw_ghost(
-	p: Vector2,
-	target: Vector2,
-	color: Color,
-	frames: SpriteFrames,
-	outline: Color
-) -> void:
+func _get_ghost_frames(enemy_type_index: int) -> SpriteFrames:
+	# Los cuatro primeros tipos corresponden a las variantes de fantasma.
+	match enemy_type_index:
+		0:
+			return fantasma_lento_frames
+		1:
+			return fantasma_veloz_dia_frames
+		2:
+			return fantasma_lento_noche_frames
+		3:
+			return fantasma_veloz_noche_frames
+
+	# Compatibilidad si el fantasma lento está configurado en otro índice.
+	if enemy_type_index == ghost_enemy_type_index:
+		return fantasma_lento_frames
+	return null
+
+
+func _sprite_size_for(enemy_type_index: int) -> float:
+	if enemy_type_index >= 0 and enemy_type_index < sprite_sizes.size():
+		return sprite_sizes[enemy_type_index]
+	return 56.0
+
+
+# Elige la animación y el cuadro del fantasma según hacia dónde está el jugador y
+# deja el resultado en _sp_texture, _sp_size y _sp_flip. Devuelve false si no hay sprite.
+func _prepare_ghost_sprite(p: Vector2, target: Vector2, frames: SpriteFrames, target_size: float) -> bool:
 	var direction := target - p
-	var facing := "right"
+	var left_side := direction.x < 0.0
+	var facing: int
+
 	if absf(direction.x) > absf(direction.y):
-		facing = "right" if direction.x >= 0.0 else "left"
+		facing = FACE_RIGHT if direction.x >= 0.0 else FACE_LEFT
 	else:
-		facing = "down" if direction.y >= 0.0 else "up"
+		facing = FACE_DOWN if direction.y >= 0.0 else FACE_UP
 
-	var animation_name := "move_" + facing
-	if not frames.has_animation(animation_name):
-		if frames.has_animation("move"):
-			animation_name = "move"
+	var anim := _get_anim(frames, facing, left_side)
+
+	if anim.is_empty():
+		return false
+
+	var textures: Array = anim["textures"]
+	var fps: float = float(anim["fps"]) * ghost_animation_speed
+	var frame_index := int(_time * maxf(fps, 0.01)) % textures.size()
+	var texture := textures[frame_index] as Texture2D
+
+	if texture == null:
+		return false
+
+	# Tamaño: el lado más largo del sprite mide target_size y se conserva su proporción.
+	var texture_size := texture.get_size()
+
+	_sp_texture = texture
+	_sp_size = texture_size * (target_size / maxf(maxf(texture_size.x, texture_size.y), 1.0))
+	_sp_flip = anim["flip"]
+	return true
+
+
+# Dibuja el sprite que dejó preparado _prepare_ghost_sprite() en este mismo nodo.
+func _draw_prepared_sprite(p: Vector2, color: Color) -> void:
+	if _sp_flip:
+		# Volteo horizontal (espejo) cuando falta la animación de ese lado.
+		draw_set_transform(p, 0.0, Vector2(-1.0, 1.0))
+		draw_texture_rect(_sp_texture, Rect2(-_sp_size * 0.5, _sp_size), false, color)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		draw_texture_rect(_sp_texture, Rect2(p - _sp_size * 0.5, _sp_size), false, color)
+
+
+# Devuelve la animación ya preparada para esa dirección: {textures, fps, flip}.
+func _get_anim(frames: SpriteFrames, facing: int, left_side: bool) -> Dictionary:
+	var entries: Array = _anim_cache.get(frames, [])
+
+	if entries.is_empty():
+		entries.resize(8)
+		_anim_cache[frames] = entries
+
+	var slot := facing * 2 + (1 if left_side else 0)
+
+	if entries[slot] == null:
+		entries[slot] = _build_anim(frames, facing, left_side)
+
+	return entries[slot]
+
+
+# Elige qué animación usar. Si falta la de esa dirección NUNCA rota el sprite:
+# usa la horizontal del lado donde está el jugador, o la contraria volteada.
+func _build_anim(frames: SpriteFrames, facing: int, left_side: bool) -> Dictionary:
+	var names := [&"move_right", &"move_down", &"move_left", &"move_up"]
+	var wanted: StringName = names[facing]
+	var chosen: StringName = &""
+	var flip := false
+
+	if frames.has_animation(wanted):
+		chosen = wanted
+	elif facing == FACE_UP or facing == FACE_DOWN:
+		var same_side: StringName = &"move_left" if left_side else &"move_right"
+		var other_side: StringName = &"move_right" if left_side else &"move_left"
+
+		if frames.has_animation(same_side):
+			chosen = same_side
+		elif frames.has_animation(other_side):
+			chosen = other_side
+			flip = true
+	else:
+		var opposite: StringName = names[(facing + 2) % 4]
+
+		if frames.has_animation(opposite):
+			chosen = opposite
+			flip = true
+
+	# Animación general (sin dirección): se voltea según el lado del jugador.
+	if chosen == &"":
+		if frames.has_animation(&"move"):
+			chosen = &"move"
 		else:
-			return
+			var all_names := frames.get_animation_names()
 
-	var frame_count := frames.get_frame_count(animation_name)
+			if all_names.is_empty():
+				return {}
+
+			chosen = StringName(all_names[0])
+
+		flip = left_side if sprites_face_right else not left_side
+
+	var frame_count := frames.get_frame_count(chosen)
+
 	if frame_count <= 0:
-		return
+		return {}
 
-	var fps := frames.get_animation_speed(animation_name) * ghost_animation_speed
+	var textures: Array[Texture2D] = []
+
+	for f in frame_count:
+		textures.append(frames.get_frame_texture(chosen, f))
+
+	var fps := frames.get_animation_speed(chosen)
+
 	if fps <= 0.0:
 		fps = 1.0
 
-	var frame_index := int(_time * fps) % frame_count
-	var texture := frames.get_frame_texture(animation_name, frame_index)
-	if texture == null:
-		return
-
-	var rect := Rect2(p - ghost_sprite_size * 0.5, ghost_sprite_size)
-
-	# Dibujar un contorno sencillo para los fantasmas fuertes.
-	if outline.a > 0.0 and outline_width > 0.0:
-		var offsets := [
-			Vector2(-outline_width, 0.0),
-			Vector2(outline_width, 0.0),
-			Vector2(0.0, -outline_width),
-			Vector2(0.0, outline_width)
-		]
-		for offset in offsets:
-			draw_texture_rect(texture, Rect2(rect.position + offset, rect.size), false, outline)
-
-	draw_texture_rect(texture, rect, false, color)
+	return {"textures": textures, "fps": fps, "flip": flip}
 
 
 # -------------------------------------------------------------------
@@ -538,7 +783,14 @@ func kill_enemy(i: int) -> void:
 
 	var stats := enemy_types[_type[i]]
 	var tier: int = _tier[i]
-	var xp := maxi(1, roundi(stats.xp_value * _tv(tier_xp_mult, tier, 1.0)))
+
+	# No siempre suelta experiencia: depende de su probabilidad (más alta si es fuerte).
+	var xp := 0
+	var drop_chance := clampf(stats.xp_drop_chance + _tv(tier_xp_drop_bonus, tier, 0.0), 0.0, 1.0)
+
+	if randf() < drop_chance:
+		xp = maxi(1, roundi(stats.xp_value * _tv(tier_xp_mult, tier, 1.0)))
+
 	var coin_chance := stats.coin_chance * _tv(tier_coin_mult, tier, 1.0)
 
 	enemy_killed.emit(_pos[i], xp)

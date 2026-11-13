@@ -40,19 +40,6 @@ fantasma_veloz_noche_frames = ExtResource("7_yg8gp")
 ghost_enemy_type_index = null
 player = NodePath("../Player")
 enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2"), ExtResource("6_op0be"), ExtResource("7_w3kvc")])
-max_enemies = null
-start_spawn_rate = null
-spawn_rate_growth = null
-max_spawn_rate = null
-health_growth_per_minute = null
-day_spawn_multiplier = null
-night_spawn_multiplier = null
-phase_vanish_time = null
-spawn_margin = null
-despawn_factor = null
-player_radius = null
-ghost_sprite_size = null
-ghost_animation_speed = null
 
 [node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]
 speed = 250.0
@@ -74,14 +61,21 @@ script = ExtResource("12_qc5wv")
 
 [node name="HudTopBar" type="CanvasLayer" parent="." unique_id=53187863]
 script = ExtResource("12_ntnhp")
-bar_height = null
-background_color = null
-xp_fill_color = null
-xp_back_color = null
-xp_border_color = null
 
 [node name="TouchJoystick" type="CanvasLayer" parent="." unique_id=1008219835]
 script = ExtResource("13_c4v46")
+max_distance = null
+dead_zone = null
+ignore_top = null
+follow_finger = null
+action_left = null
+action_right = null
+action_up = null
+action_down = null
+knob_radius = null
+fill_color = null
+ring_color = null
+knob_color = null
 
 [node name="UpgradeMenu" type="CanvasLayer" parent="." unique_id=1818500524]
 script = ExtResource("15_vj61e")

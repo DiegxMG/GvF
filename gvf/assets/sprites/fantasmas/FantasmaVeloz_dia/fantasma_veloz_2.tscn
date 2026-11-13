@@ -6,5 +6,4 @@
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=75144950]
 sprite_frames = ExtResource("1_8vfqk")
-animation = &"hurt"
-frame_progress = 0.98697126
+animation = &"move_left"
