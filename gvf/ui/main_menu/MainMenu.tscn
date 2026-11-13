@@ -1,45 +1,17 @@
 [gd_scene format=3 uid="uid://cgrv6kd0hujch"]
 
 [ext_resource type="Script" uid="uid://bluhs8hnela03" path="res://ui/main_menu/MainMenu.gd" id="1_h7g2k"]
-[ext_resource type="Texture2D" uid="uid://duuonp3whb5rx" path="res://assets/menu/fondo_menu.png" id="2_blw3s"]
+[ext_resource type="Texture2D" uid="uid://dws2bf8t8w1ul" path="res://assets/menu/Bosque encantado bajo la luna.png" id="2_2ijps"]
+[ext_resource type="Texture2D" uid="uid://8sm5k075tec2" path="res://assets/menu/Boton_JUGAR.png" id="3_vmw4a"]
 [ext_resource type="Texture2D" uid="uid://ijknkx8cmopt" path="res://assets/menu/logo_gvf.png" id="3_x85v6"]
 [ext_resource type="SpriteFrames" uid="uid://dd5i7ufy4yk7d" path="res://assets/sprites/gato/gato_frames.tres" id="4_u1tth"]
+[ext_resource type="Texture2D" uid="uid://77wn52urkrgx" path="res://assets/menu/BotonEngrane.png" id="4_vmw4a"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_20cct"]
-bg_color = Color(0.34117648, 0.1882353, 0.6392157, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.6509804, 1, 0.47058824, 1)
-corner_radius_top_left = 30
-corner_radius_top_right = 30
-corner_radius_bottom_right = 30
-corner_radius_bottom_left = 30
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2ijps"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_remal"]
-bg_color = Color(0.20784314, 0.1254902, 0.41960785, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.6509804, 1, 0.47058824, 1)
-corner_radius_top_left = 30
-corner_radius_top_right = 30
-corner_radius_bottom_right = 30
-corner_radius_bottom_left = 30
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vmw4a"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j33ie"]
-bg_color = Color(0.45882353, 0.27058825, 0.78039217, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.6509804, 1, 0.47058824, 1)
-corner_radius_top_left = 30
-corner_radius_top_right = 30
-corner_radius_bottom_right = 30
-corner_radius_bottom_left = 30
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3vjg6"]
 
 [node name="MainMenu" type="Control" unique_id=800363529]
 layout_mode = 3
@@ -58,7 +30,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("2_blw3s")
+texture = ExtResource("2_2ijps")
 expand_mode = 1
 stretch_mode = 6
 
@@ -73,17 +45,38 @@ theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 48
-theme_override_styles/normal = SubResource("StyleBoxFlat_20cct")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_remal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_j33ie")
-text = "JUGAR"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_2ijps")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_vmw4a")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_3vjg6")
+
+[node name="PlayButtonNuevo" type="TextureButton" parent="PlayButton" unique_id=417509055]
+layout_mode = 0
+offset_left = 18.0
+offset_top = -12.0
+offset_right = 418.0
+offset_bottom = 123.0
+mouse_filter = 2
+texture_normal = ExtResource("3_vmw4a")
+ignore_texture_size = true
+stretch_mode = 0
 
 [node name="SettingsButton" type="Button" parent="." unique_id=1741177716]
 layout_mode = 0
-offset_left = 590.0
+offset_left = 612.0
 offset_top = 40.0
 offset_right = 680.0
-offset_bottom = 130.0
+offset_bottom = 105.0
+mouse_filter = 2
+
+[node name="TextureButton" type="TextureButton" parent="SettingsButton" unique_id=292118408]
+layout_mode = 0
+offset_left = -2.0
+offset_right = 63.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture_normal = ExtResource("4_vmw4a")
+ignore_texture_size = true
+stretch_mode = 0
 
 [node name="Title" type="TextureRect" parent="." unique_id=2137381082]
 layout_mode = 0
@@ -97,6 +90,7 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="MenuCat" type="AnimatedSprite2D" parent="." unique_id=474755307]
+visible = false
 texture_filter = 1
 position = Vector2(360, 900)
 scale = Vector2(2, 2)
