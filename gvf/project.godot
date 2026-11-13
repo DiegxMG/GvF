@@ -11,9 +11,11 @@ config_version=5
 [application]
 
 config/name="gvf"
-run/main_scene="uid://dxeqbsv0p0g8v"
+run/main_scene="uid://cgrv6kd0hujch"
 config/features=PackedStringArray("4.7", "Mobile")
-config/icon="res://icon.svg"
+boot_splash/use_filter=false
+boot_splash/image="uid://30sooddx865u"
+config/icon="uid://wx78btrho0dy"
 
 [autoload]
 
