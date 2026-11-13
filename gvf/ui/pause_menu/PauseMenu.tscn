@@ -1,6 +1,65 @@
 [gd_scene format=3 uid="uid://bisv8xl61f1ts"]
 
 [ext_resource type="Script" uid="uid://dxp6fngkho5kd" path="res://ui/pause_menu/pause_menu.gd" id="1_k6boa"]
+[ext_resource type="Texture2D" uid="uid://d2hsrq4c6haof" path="res://assets/menu/BotonContinuar.png" id="2_dyg54"]
+[ext_resource type="Texture2D" uid="uid://crh5slaet8qff" path="res://assets/menu/LetreroPausa.png" id="2_h0m3w"]
+[ext_resource type="Texture2D" uid="uid://bxl2emxkiyv4m" path="res://assets/menu/FondoPausa.png" id="2_u074n"]
+[ext_resource type="Texture2D" uid="uid://bnuybt4646tki" path="res://assets/menu/BotonReinicio.png" id="3_h8jb3"]
+[ext_resource type="Texture2D" uid="uid://jji82ngia03j" path="res://assets/menu/BotonSalir.png" id="4_hkmon"]
+[ext_resource type="Texture2D" uid="uid://b6nu1xnnrbj3e" path="res://assets/menu/LetreroVolumen.png" id="5_85xbt"]
+[ext_resource type="Texture2D" uid="uid://c1huuqru5tr1c" path="res://assets/menu/HuellitaVolumen48.png" id="6_vm67l"]
+[ext_resource type="Texture2D" uid="uid://by51nbxty74a3" path="res://assets/menu/BotonPausa.png" id="9_nig44"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_20cct"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j33ie"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_remal"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_74aaq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pphe0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gm31e"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pn7ow"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vggkd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7i7vk"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o4b2q"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vm67l"]
+bg_color = Color(0.21960784, 0.078431375, 0.30980393, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.7137255, 0.2901961, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u074n"]
+bg_color = Color(0.70980394, 1, 0.20784314, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b74sg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tqabj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2v1ml"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l5pay"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ra5y0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uufjl"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wi7s1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y51ip"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_31tug"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_akjyr"]
 
 [node name="PauseMenu" type="CanvasLayer" unique_id=1837675529]
 process_mode = 3
@@ -14,46 +73,136 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0627451, 0.043137256, 0.10980392, 0.7019608)
 
+[node name="FondoPausa" type="TextureRect" parent="Overlay" unique_id=2009692315]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_u074n")
+expand_mode = 1
+
 [node name="MenuButtons" type="VBoxContainer" parent="Overlay" unique_id=535676123]
 layout_mode = 0
-offset_left = 400.0
-offset_top = 500.0
+offset_left = 160.0
+offset_top = 330.0
 offset_right = 560.0
-offset_bottom = 890.0
+offset_bottom = 1013.0
 theme_override_constants/separation = 20
 
 [node name="PauseTitle" type="Label" parent="Overlay/MenuButtons" unique_id=508931557]
+custom_minimum_size = Vector2(400, 110)
 layout_mode = 2
-text = "PAUSA"
+
+[node name="PauseImage" type="TextureRect" parent="Overlay/MenuButtons/PauseTitle" unique_id=1303038663]
+layout_mode = 0
+offset_top = -65.0
+offset_right = 400.0
+offset_bottom = 125.0
+mouse_filter = 2
+texture = ExtResource("2_h0m3w")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="ContinueButton" type="Button" parent="Overlay/MenuButtons" unique_id=220578070]
+custom_minimum_size = Vector2(400, 100)
 layout_mode = 2
-text = "CONTINUAR"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_20cct")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_j33ie")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_remal")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_74aaq")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_pphe0")
+
+[node name="ContinueImage" type="TextureRect" parent="Overlay/MenuButtons/ContinueButton" unique_id=812669270]
+layout_mode = 0
+offset_right = 400.0
+offset_bottom = 100.0
+mouse_filter = 2
+texture = ExtResource("2_dyg54")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="RestartButton" type="Button" parent="Overlay/MenuButtons" unique_id=510096959]
+custom_minimum_size = Vector2(400, 100)
 layout_mode = 2
-text = "REINICIAR"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_gm31e")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_pn7ow")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_vggkd")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7i7vk")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_o4b2q")
+
+[node name="RestartImage" type="TextureRect" parent="Overlay/MenuButtons/RestartButton" unique_id=467251266]
+layout_mode = 0
+offset_right = 400.0
+offset_bottom = 100.0
+mouse_filter = 2
+texture = ExtResource("3_h8jb3")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="VolumeLabel" type="Label" parent="Overlay/MenuButtons" unique_id=1483426245]
+custom_minimum_size = Vector2(400, 65)
 layout_mode = 2
-text = "VOLUMEN"
+
+[node name="VolumeImage" type="TextureRect" parent="Overlay/MenuButtons/VolumeLabel" unique_id=1904574402]
+layout_mode = 0
+offset_right = 400.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture = ExtResource("5_85xbt")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="VolumeSlider" type="HSlider" parent="Overlay/MenuButtons" unique_id=508887585]
 layout_mode = 2
+theme_override_icons/grabber = ExtResource("6_vm67l")
+theme_override_icons/grabber_highlight = ExtResource("6_vm67l")
+theme_override_styles/slider = SubResource("StyleBoxFlat_vm67l")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_u074n")
 max_value = 1.0
 step = 0.01
 value = 1.0
 
 [node name="ExitButton" type="Button" parent="Overlay/MenuButtons" unique_id=650621281]
+custom_minimum_size = Vector2(400, 100)
 layout_mode = 2
-text = "SALIR"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_b74sg")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_tqabj")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_2v1ml")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_l5pay")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ra5y0")
+
+[node name="ExitImage" type="TextureRect" parent="Overlay/MenuButtons/ExitButton" unique_id=1671743119]
+layout_mode = 0
+offset_right = 400.0
+offset_bottom = 100.0
+mouse_filter = 2
+texture = ExtResource("4_hkmon")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="PauseButton" type="Button" parent="." unique_id=2122287943]
-offset_left = 625.0
-offset_top = 25.0
+offset_left = 630.0
+offset_top = 125.0
 offset_right = 690.0
-offset_bottom = 90.0
-text = "Ⅱ"
+offset_bottom = 185.0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_uufjl")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_wi7s1")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_y51ip")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_31tug")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_akjyr")
+
+[node name="PauseImage" type="TextureRect" parent="PauseButton" unique_id=1632495293]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+texture = ExtResource("9_nig44")
+expand_mode = 1
+stretch_mode = 5
 
 [connection signal="pressed" from="Overlay/MenuButtons/ContinueButton" to="." method="_on_continue_button_pressed"]
 [connection signal="pressed" from="Overlay/MenuButtons/RestartButton" to="." method="_on_restart_button_pressed"]
