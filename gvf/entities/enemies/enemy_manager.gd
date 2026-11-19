@@ -51,19 +51,25 @@ class OutlineLayer extends Node2D:
 @export var enemy_types: Array[EnemyStats] = []
 
 @export_group("Límites")
-@export var max_enemies: int = 250
+@export var max_enemies: int = 280
 
 @export_group("Dificultad (modo Arcade)")
 ## Enemigos por segundo al empezar, y cuánto sube esa cantidad cada segundo.
-## Con 0.7 y 0.003: ~1.6 por segundo a los 5 min, ~2.5 a los 10 y ~4.3 a los 20.
-@export var start_spawn_rate: float = 0.7
-@export var spawn_rate_growth: float = 0.003
-@export var max_spawn_rate: float = 6.0
+## Con 0.9 y 0.004: ~2.1 por segundo a los 5 min, ~3.3 a los 10 y ~5.7 a los 20.
+@export var start_spawn_rate: float = 0.9
+@export var spawn_rate_growth: float = 0.004
+@export var max_spawn_rate: float = 7.0
 @export var health_growth_per_minute: float = 0.3
+## Multiplica el daño de TODOS los fantasmas al tocar al jugador (1 = el de cada .tres).
+@export var enemy_damage_multiplier: float = 1.5
+## Cuánto sube el daño de los fantasmas cada minuto (0.06 = +6 % por minuto).
+@export var damage_growth_per_minute: float = 0.06
+## Multiplica la velocidad de TODOS los fantasmas (1 = la de cada .tres).
+@export var enemy_speed_multiplier: float = 1.08
 
 @export_group("Día y noche")
 @export var day_spawn_multiplier: float = 1.0
-@export var night_spawn_multiplier: float = 1.25
+@export var night_spawn_multiplier: float = 1.35
 @export var phase_vanish_time: float = 3.0
 
 @export_group("Distancias")
@@ -398,6 +404,9 @@ func _move_enemies(delta: float, target: Vector2) -> void:
 	var despawn_dist := _spawn_radius() * despawn_factor
 	var despawn_sq := despawn_dist * despawn_dist
 
+	# Daño de contacto con el aumento general y el que sube con el tiempo de partida.
+	var damage_mult := enemy_damage_multiplier * (1.0 + damage_growth_per_minute * (_time / 60.0))
+
 	for i in _count:
 		var direction := target - _pos[i]
 		var dist_sq := direction.length_squared()
@@ -411,12 +420,12 @@ func _move_enemies(delta: float, target: Vector2) -> void:
 
 		if dist_sq <= touch * touch:
 			if _matches_phase(stats, night):
-				_damage_player(stats.contact_damage * _tv(tier_damage_mult, _tier[i], 1.0))
+				_damage_player(stats.contact_damage * _tv(tier_damage_mult, _tier[i], 1.0) * damage_mult)
 
 			continue
 
 		var dist := sqrt(dist_sq)
-		var step := minf(stats.speed * delta, dist - touch)
+		var step := minf(stats.speed * enemy_speed_multiplier * delta, dist - touch)
 
 		_pos[i] += direction / dist * step
 

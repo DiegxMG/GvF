@@ -8,6 +8,7 @@ extends RefCounted
 
 ## Rarezas, de la más común a la más rara.
 const RARITY_NAMES: Array[String] = ["Común", "Poco común", "Especial", "Épico", "Legendario"]
+const RARITY_NAMES_EN: Array[String] = ["Common", "Uncommon", "Special", "Epic", "Legendary"]
 const RARITY_COLORS: Array[Color] = [
 	Color(0.75, 0.75, 0.78), # Común: gris
 	Color(0.35, 0.80, 0.40), # Poco común: verde
@@ -46,64 +47,81 @@ const UPGRADES: Array[Dictionary] = [
 	{
 		"id": &"claw_damage", "category": &"weapon", "weapon": &"claw",
 		"name": "Garras afiladas", "text": "+%d%% de daño de la garra",
+		"name_en": "Sharp claws", "text_en": "+%d%% claw damage",
 		"values": [5, 8, 12, 18, 30],
 		"icon": "Z", "color": Color(0.62, 0.36, 0.98),
 	},
 	{
 		"id": &"claw_speed", "category": &"weapon", "weapon": &"claw",
 		"name": "Zarpazos veloces", "text": "+%d%% de velocidad de ataque de la garra",
+		"name_en": "Swift swipes", "text_en": "+%d%% claw attack speed",
 		"values": [4, 6, 9, 14, 22],
 		"icon": "Z", "color": Color(0.62, 0.36, 0.98),
 	},
 	{
 		"id": &"all_damage", "category": &"modifier",
 		"name": "Furia felina", "text": "+%d%% de daño de todas las armas",
+		"name_en": "Feline fury", "text_en": "+%d%% damage with all weapons",
 		"values": [3, 5, 8, 12, 20],
 		"icon": "F", "color": Color(0.95, 0.45, 0.30),
 	},
 	{
 		"id": &"all_speed", "category": &"modifier",
 		"name": "Reflejos de gato", "text": "+%d%% de velocidad de ataque de todas las armas",
+		"name_en": "Cat reflexes", "text_en": "+%d%% attack speed with all weapons",
 		"values": [3, 4, 6, 10, 16],
 		"icon": "R", "color": Color(0.95, 0.85, 0.30),
 	},
 	{
 		"id": &"move_speed", "category": &"modifier",
 		"name": "Patas ligeras", "text": "+%d%% de velocidad de movimiento",
+		"name_en": "Light paws", "text_en": "+%d%% movement speed",
 		"values": [1, 2, 3, 5, 10],
 		"icon": "P", "color": Color(0.30, 0.85, 0.95),
 	},
 	{
 		"id": &"max_health", "category": &"modifier",
 		"name": "Siete vidas", "text": "+%d de vida máxima",
+		"name_en": "Nine lives", "text_en": "+%d max health",
 		"values": [5, 10, 15, 25, 50],
 		"icon": "S", "color": Color(0.95, 0.35, 0.50),
 	},
 	{
 		"id": &"defense", "category": &"modifier",
 		"name": "Pelaje grueso", "text": "Los fantasmas te hacen %d%% menos de daño",
+		"name_en": "Thick fur", "text_en": "Ghosts deal %d%% less damage to you",
 		"values": [2, 3, 5, 8, 12],
 		"icon": "G", "color": Color(0.45, 0.60, 0.90),
 	},
 	{
 		"id": &"xp_gain", "category": &"modifier",
 		"name": "Mente despierta", "text": "+%d%% de experiencia obtenida",
+		"name_en": "Sharp mind", "text_en": "+%d%% experience gained",
 		"values": [5, 8, 12, 18, 30],
 		"icon": "M", "color": Color(0.65, 0.40, 1.00),
 	},
 	{
 		"id": &"coin_chance", "category": &"modifier",
 		"name": "Olfato de suerte", "text": "+%d%% de probabilidad de que suelten monedas",
+		"name_en": "Lucky nose", "text_en": "+%d%% chance for ghosts to drop coins",
 		"values": [5, 10, 15, 25, 40],
 		"icon": "O", "color": Color(0.40, 0.90, 0.45),
 	},
 	{
 		"id": &"coin_value", "category": &"modifier",
 		"name": "Monedas brillantes", "text": "Las monedas valen +%d%%",
+		"name_en": "Shiny coins", "text_en": "Coins are worth +%d%%",
 		"values": [10, 15, 25, 50, 100],
 		"icon": "B", "color": Color(1.00, 0.80, 0.25),
 	},
 ]
+
+
+## Nombre de la rareza en el idioma elegido.
+static func rarity_name(rarity: int) -> String:
+	if GameText.is_english():
+		return RARITY_NAMES_EN[rarity]
+	return RARITY_NAMES[rarity]
 
 
 static func is_bonus_level(level: int) -> bool:
@@ -158,12 +176,14 @@ static func roll_options(level: int, equipment: PlayerEquipment, count: int = 3)
 		var rarity := roll_rarity(level)
 		var values: Array = def["values"]
 		var value: int = values[rarity]
-		var text: String = def["text"]
+		var english := GameText.is_english()
+		var text: String = def["text_en"] if english else def["text"]
+		var display_name: String = def["name_en"] if english else def["name"]
 		options.append({
 			"id": def["id"],
 			"category": def["category"],
 			"weapon": def.get("weapon", &""),
-			"name": def["name"],
+			"name": display_name,
 			"rarity": rarity,
 			"value": value,
 			"text": text % value,
@@ -177,5 +197,6 @@ static func item_info(id: StringName) -> Dictionary:
 		return WEAPONS[id]
 	for def in UPGRADES:
 		if def["id"] == id:
-			return {"name": def["name"], "icon": def["icon"], "color": def["color"]}
+			var item_name: String = def["name_en"] if GameText.is_english() else def["name"]
+			return {"name": item_name, "icon": def["icon"], "color": def["color"]}
 	return {}

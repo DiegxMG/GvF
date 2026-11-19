@@ -11,6 +11,6 @@ xp_value = 3
 size = 22.0
 color = Color(0.4, 1, 0.8, 1)
 active_time = 2
+first_day = 2
 spawn_weight = 1.5
-appears_at_time = 30.0
 metadata/_custom_type_script = "uid://bxe00x1cyqlbg"

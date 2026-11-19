@@ -2,13 +2,14 @@ class_name ArcadeSession
 extends Node
 ## El puente entre una partida del modo Arcade y su progreso permanente.
 ## Va como nodo en el mundo del modo Arcade (world.tscn). Otros modos NO lo
-## llevan, y por eso las mejoras permanentes no los afectan.
+## llevan, y por eso las mejoras permanentes ni las skins los afectan.
 ##
-## Hace dos cosas:
+## Hace tres cosas:
 ##   1. Al empezar la partida, entrega a PlayerStats los bonos de las mejoras
 ##      permanentes compradas. Las mejoras que se eligen al subir de nivel se
 ##      suman sobre esos bonos.
-##   2. Al morir el jugador, guarda las monedas de la partida en la cartera
+##   2. Al empezar la partida, le pone al gato la skin que el jugador eligió.
+##   3. Al morir el jugador, guarda las monedas de la partida en la cartera
 ##      permanente (una sola vez).
 
 var _deposited: bool = false
@@ -29,6 +30,10 @@ func _setup() -> void:
 	var health := get_tree().get_first_node_in_group("player_health") as PlayerHealth
 	if health != null:
 		health.died.connect(_on_player_died)
+		# PlayerHealth es hijo del Player: de ahí sacamos al gato para ponerle la skin.
+		var player := health.get_parent()
+		if player != null and player.has_method("apply_skin"):
+			player.apply_skin(ArcadeProgress.get_selected_skin())
 	else:
 		push_warning("ArcadeSession: no se encontró PlayerHealth; las monedas no se guardarán.")
 

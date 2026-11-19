@@ -83,10 +83,10 @@ func _start(index: int, pos: Vector2) -> void:
 
 func _move(pos: Vector2) -> void:
 	if follow_finger:
-		var offset := pos - _origin
-		var dist := offset.length()
+		var from_origin := pos - _origin
+		var dist := from_origin.length()
 		if dist > max_distance:
-			_origin += offset / dist * (dist - max_distance)
+			_origin += from_origin / dist * (dist - max_distance)
 	_current = pos
 	_update_output()
 	_ui.queue_redraw()
@@ -103,13 +103,13 @@ func _stop() -> void:
 # --- Salida hacia las acciones del juego ---------------------------------------------
 
 func _update_output() -> void:
-	var offset := _current - _origin
-	var ratio := minf(offset.length() / max_distance, 1.0)
+	var from_origin := _current - _origin
+	var ratio := minf(from_origin.length() / max_distance, 1.0)
 	if ratio < dead_zone:
 		_set_direction(Vector2.ZERO)
 	else:
 		# Velocidad constante: siempre dirección normalizada.
-		_set_direction(offset.normalized())
+		_set_direction(from_origin.normalized())
 
 
 func _set_direction(dir: Vector2) -> void:

@@ -83,6 +83,16 @@ const KIND_MOUSE := 2
 @export var coin_color: Color = Color(1.0, 0.78, 0.15)
 @export var mouse_color: Color = Color(0.82, 0.76, 0.92)
 
+@export_group("Sprite del ratón")
+## Hoja de animación del ratón (cuadros en fila horizontal). Si se deja vacía,
+## se dibuja un ratón provisional con figuras.
+@export var mouse_texture: Texture2D
+## Cuántos cuadros tiene la hoja (la de MouseWalkingBrown tiene 2).
+@export var mouse_frame_count: int = 2
+@export var mouse_fps: float = 4.0
+## Alto del ratón en el mapa (unidades del mundo). El ancho se ajusta solo.
+@export var mouse_draw_height: float = 36.0
+
 var _pos := PackedVector2Array()
 var _value := PackedInt32Array()
 var _pull := PackedFloat32Array()
@@ -98,6 +108,7 @@ var _health: PlayerHealth
 
 func _ready() -> void:
 	add_to_group("xp_orb_manager")
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	top_level = true
 	global_position = Vector2.ZERO
 	_pos.resize(max_pickups)
@@ -339,8 +350,11 @@ func _draw() -> void:
 			draw_circle(p + Vector2(-r, -r) * 0.3, r * 0.35, Color(color.lightened(0.6), alpha))
 
 
-# Ratón provisional: un rectángulo con orejas y cola.
+# Ratón: usa el sprite si está asignado; si no, un dibujo provisional con figuras.
 func _draw_mouse(p: Vector2, alpha: float) -> void:
+	if mouse_texture != null:
+		_draw_mouse_sprite(p, alpha)
+		return
 	var pink := Color(0.95, 0.60, 0.70, alpha)
 	var dark := Color(0.10, 0.04, 0.20, alpha)
 	var body := Rect2(p - Vector2(11.0, 7.0), Vector2(22.0, 14.0))
@@ -350,6 +364,19 @@ func _draw_mouse(p: Vector2, alpha: float) -> void:
 	draw_circle(p + Vector2(7.0, -7.0), 3.5, pink)
 	draw_circle(p + Vector2(0.0, -7.0), 3.5, pink)
 	draw_circle(p + Vector2(8.0, -1.0), 1.4, dark)
+
+
+# Dibuja el cuadro actual de la hoja del ratón, centrado en su posición.
+func _draw_mouse_sprite(p: Vector2, alpha: float) -> void:
+	var frames := maxi(mouse_frame_count, 1)
+	var frame := int(Time.get_ticks_msec() * 0.001 * mouse_fps) % frames
+	var frame_width := float(mouse_texture.get_width()) / float(frames)
+	var frame_height := float(mouse_texture.get_height())
+	var k := mouse_draw_height / frame_height
+	var size := Vector2(frame_width, frame_height) * k
+	var target := Rect2(p - Vector2(size.x * 0.5, size.y * 0.65), size)
+	var source := Rect2(frame * frame_width, 0.0, frame_width, frame_height)
+	draw_texture_rect_region(mouse_texture, target, source, Color(1.0, 1.0, 1.0, alpha))
 
 
 # Flecha pegada al borde de la pantalla que apunta hacia un ratón fuera de vista.

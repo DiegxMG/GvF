@@ -17,11 +17,16 @@ boot_splash/use_filter=false
 boot_splash/image="uid://30sooddx865u"
 config/icon="uid://wx78btrho0dy"
 
+[audio]
+
+buses/default_bus_layout="uid://ce2dqfbqren0d"
+
 [autoload]
 
 GameManager="*uid://3juihqfhb3cg"
 ResourceManager="*uid://dmkjtsonwfhsq"
 TimeManager="*uid://bx7n64jeqkbm8"
+AudioManager="*uid://dv1vhji2iofnd"
 
 [display]
 

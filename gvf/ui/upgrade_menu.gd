@@ -89,20 +89,20 @@ func _show_next() -> void:
 	var equipment := get_tree().get_first_node_in_group("player_equipment") as PlayerEquipment
 	_options = UpgradeDatabase.roll_options(level, equipment, OPTION_COUNT)
 
-	_title.text = "¡NIVEL %d!" % level
+	_title.text = GameText.t(&"level_up_title") % level
 	if UpgradeDatabase.is_bonus_level(level):
-		_subtitle.text = "¡Nivel de recompensa! Más probabilidad de mejoras raras"
+		_subtitle.text = GameText.t(&"reward_level")
 	elif equipment != null and equipment.modifier_slots_full():
-		_subtitle.text = "Elige una mejora (modificadores completos)"
+		_subtitle.text = GameText.t(&"pick_upgrade_full")
 	else:
-		_subtitle.text = "Elige una mejora"
+		_subtitle.text = GameText.t(&"pick_upgrade")
 
 	for i in _buttons.size():
 		var button := _buttons[i]
 		if i < _options.size():
 			var option: Dictionary = _options[i]
 			var rarity: int = option["rarity"]
-			var rarity_name: String = UpgradeDatabase.RARITY_NAMES[rarity]
+			var rarity_name: String = UpgradeDatabase.rarity_name(rarity)
 			button.text = "%s\n%s\n%s" % [rarity_name.to_upper(), option["name"], option["text"]]
 			_style_button(button, rarity)
 			button.visible = true

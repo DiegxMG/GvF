@@ -6,6 +6,9 @@ extends Node2D
 ## ángulo), sin colisiones físicas.
 ## Las mejoras de PlayerStats modifican el daño y la velocidad de ataque.
 
+## Se emite cada vez que el gato da un zarpazo (la usa el sonido).
+signal swiped
+
 @export_group("Daño")
 @export var damage: float = 5.0
 ## Segundos entre zarpazos (antes de las mejoras).
@@ -72,6 +75,7 @@ func _swipe(dir: Vector2) -> void:
 	_cooldown_left = maxf(cooldown / speed_mult, min_cooldown)
 	_anim_time = 0.0
 	rotation = dir.angle()
+	swiped.emit()
 	enemy_manager.damage_in_arc(
 		global_position, dir, reach, deg_to_rad(arc_degrees) * 0.5,
 		damage * damage_mult, knockback)

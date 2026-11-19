@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dxp6fngkho5kd" path="res://ui/pause_menu/pause_menu.gd" id="1_k6boa"]
 [ext_resource type="Texture2D" uid="uid://d2hsrq4c6haof" path="res://assets/menu/BotonContinuar.png" id="2_dyg54"]
 [ext_resource type="Texture2D" uid="uid://crh5slaet8qff" path="res://assets/menu/LetreroPausa.png" id="2_h0m3w"]
-[ext_resource type="Texture2D" uid="uid://bxl2emxkiyv4m" path="res://assets/menu/FondoPausa.png" id="2_u074n"]
+[ext_resource type="Texture2D" uid="uid://bsyslygtpb7ab" path="res://assets/menu/FondoPausa_sin_fondo_translucido.png" id="2_nig44"]
 [ext_resource type="Texture2D" uid="uid://bnuybt4646tki" path="res://assets/menu/BotonReinicio.png" id="3_h8jb3"]
 [ext_resource type="Texture2D" uid="uid://jji82ngia03j" path="res://assets/menu/BotonSalir.png" id="4_hkmon"]
 [ext_resource type="Texture2D" uid="uid://b6nu1xnnrbj3e" path="res://assets/menu/LetreroVolumen.png" id="5_85xbt"]
@@ -81,7 +81,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("2_u074n")
+texture = ExtResource("2_nig44")
 expand_mode = 1
 
 [node name="MenuButtons" type="VBoxContainer" parent="Overlay" unique_id=535676123]
@@ -197,8 +197,10 @@ theme_override_styles/focus = SubResource("StyleBoxEmpty_akjyr")
 [node name="PauseImage" type="TextureRect" parent="PauseButton" unique_id=1632495293]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 25.0
+offset_top = 11.0
+offset_right = 89.0
+offset_bottom = 75.0
 mouse_filter = 2
 texture = ExtResource("9_nig44")
 expand_mode = 1

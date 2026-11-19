@@ -46,6 +46,8 @@ var _coins_label: Label
 var _weapon_slots: Array[Panel] = []
 var _modifier_slots: Array[Panel] = []
 var _equipment: PlayerEquipment
+var _level: int = 1
+var _shown_language: String = ""
 
 
 func _ready() -> void:
@@ -169,11 +171,17 @@ func _process(_delta: float) -> void:
 	var total := int(TimeManager.elapsed)
 	_time_label.text = "%02d:%02d" % [int(total / 60.0), total % 60]
 
+	# Si cambió el idioma, se vuelve a escribir el nivel.
+	var language := GameText.language()
+	if language != _shown_language:
+		_shown_language = language
+		_refresh_level_text()
+
 	var night: bool = TimeManager.is_night
-	var phase := "NOCHE" if night else "DÍA"
-	var next_phase := "DÍA" if night else "NOCHE"
+	var phase := GameText.t(&"night") if night else GameText.t(&"day")
+	var next_phase := GameText.t(&"day") if night else GameText.t(&"night")
 	var left := int(TimeManager.get_phase_time_left())
-	_phase_label.text = "%s %d  ·  %s en %d:%02d" % [
+	_phase_label.text = GameText.t(&"phase_line") % [
 		phase, TimeManager.day_number, next_phase, int(left / 60.0), left % 60]
 	_phase_label.add_theme_color_override("font_color", GameTheme.LILAC if night else GameTheme.GREEN)
 
@@ -181,7 +189,12 @@ func _process(_delta: float) -> void:
 func _on_xp_changed(current: int, needed: int, level: int) -> void:
 	_xp_bar.max_value = needed
 	_xp_bar.value = current
-	_level_label.text = "NV. %d" % level
+	_level = level
+	_refresh_level_text()
+
+
+func _refresh_level_text() -> void:
+	_level_label.text = "%s %d" % [GameText.t(&"level_short"), _level]
 
 
 func _on_kills_changed(kills: int) -> void:
