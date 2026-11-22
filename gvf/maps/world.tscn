@@ -17,12 +17,18 @@
 [ext_resource type="SpriteFrames" uid="uid://dgvr6dynrk7jl" path="res://assets/sprites/fantasmas/fantasma_noche2/fantasma_veloz_noche_frames.tres" id="7_yg8gp"]
 [ext_resource type="Script" uid="uid://1axuke333eyj" path="res://systems/day_night_tint.gd" id="10_dsm5r"]
 [ext_resource type="Script" uid="uid://clukm26uygtuv" path="res://ui/damage_numbers.gd" id="10_qo83i"]
+[ext_resource type="SpriteFrames" uid="uid://cp7wrj15e4y1q" path="res://assets/sprites/vampire/vampire1/vampire_frames.tres" id="10_v2ylt"]
+[ext_resource type="SpriteFrames" uid="uid://bd4qubgx0nc20" path="res://assets/sprites/vampire/vampire2/vampire2_frames.tres" id="11_wxe6n"]
+[ext_resource type="SpriteFrames" uid="uid://cx4hi81o12ky0" path="res://assets/sprites/vampire/vampire3/vampire3_frames.tres" id="12_8wibs"]
 [ext_resource type="Script" uid="uid://c6xirb8auqe33" path="res://ui/hud/hud_top_bar.gd" id="12_ntnhp"]
 [ext_resource type="Script" uid="uid://bykype2r8cifu" path="res://systems/run_stats.gd" id="12_qc5wv"]
 [ext_resource type="Script" uid="uid://cvontvgr1603k" path="res://ui/TouchJoystick.gd" id="13_c4v46"]
 [ext_resource type="Script" uid="uid://bf5blok2tn2o0" path="res://ui/upgrade_menu.gd" id="15_vj61e"]
+[ext_resource type="Resource" uid="uid://b05qf62a42ypv" path="res://resources/stats_enemies/vampire.tres" id="18_jwm57"]
 [ext_resource type="Script" uid="uid://cpc6l1p7asfc1" path="res://modes/arcade/arcade_session.gd" id="18_vj61e"]
 [ext_resource type="PackedScene" uid="uid://bisv8xl61f1ts" path="res://ui/pause_menu/PauseMenu.tscn" id="19_7mbce"]
+[ext_resource type="Resource" uid="uid://b5bfb8acm0cf" path="res://resources/stats_enemies/vampire2.tres" id="19_kddec"]
+[ext_resource type="Resource" uid="uid://syft7sgi74q3" path="res://resources/stats_enemies/vampire3.tres" id="20_rssya"]
 [ext_resource type="Script" uid="uid://b4bijm2pxe6px" path="res://maps/forest_map.gd" id="24_xqrul"]
 
 [node name="World" type="Node2D" unique_id=29999533]
@@ -44,8 +50,12 @@ fantasma_lento_frames = ExtResource("4_qc5wv")
 fantasma_veloz_dia_frames = ExtResource("7_81eie")
 fantasma_lento_noche_frames = ExtResource("6_7mbce")
 fantasma_veloz_noche_frames = ExtResource("7_yg8gp")
+vampire_frames = ExtResource("10_v2ylt")
+vampire2_frames = ExtResource("11_wxe6n")
+vampire3_frames = ExtResource("12_8wibs")
 player = NodePath("../Player")
-enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2"), ExtResource("6_op0be"), ExtResource("7_w3kvc")])
+enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2"), ExtResource("6_op0be"), ExtResource("7_w3kvc"), ExtResource("18_jwm57"), ExtResource("19_kddec"), ExtResource("20_rssya")])
+sprite_sizes = Array[float]([52.0, 64.0, 76.0, 76.0, 128.0, 128.0, 160.0])
 
 [node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]
 

@@ -43,6 +43,9 @@ class OutlineLayer extends Node2D:
 @export var fantasma_veloz_dia_frames: SpriteFrames
 @export var fantasma_lento_noche_frames: SpriteFrames
 @export var fantasma_veloz_noche_frames: SpriteFrames
+@export var vampire_frames: SpriteFrames
+@export var vampire2_frames: SpriteFrames
+@export var vampire3_frames: SpriteFrames
 
 # Índice original del fantasma lento en Enemy Types.
 @export var ghost_enemy_type_index: int = 0
@@ -83,7 +86,7 @@ class OutlineLayer extends Node2D:
 ## Tamaño visual de cada fantasma (en unidades del mundo), por índice de Enemy Types:
 ## [lento de día, rápido de día, lento de noche, rápido de noche].
 ## Es el lado MÁS LARGO del sprite: se conserva su proporción, no se deforma.
-@export var sprite_sizes: Array[float] = [52.0, 64.0, 76.0, 76.0]
+@export var sprite_sizes: Array[float] = [52.0, 64.0, 76.0, 76.0, 64.0]
 @export var ghost_animation_speed: float = 1.0
 ## true si el arte original de los fantasmas mira hacia la derecha.
 ## Solo se usa cuando falta una animación direccional y hay que voltear el sprite.
@@ -569,8 +572,8 @@ func _draw_outlines(canvas: CanvasItem) -> void:
 # ANIMACIÓN DEL FANTASMA
 # -----------------------------------------------------------------
 
+
 func _get_ghost_frames(enemy_type_index: int) -> SpriteFrames:
-	# Los cuatro primeros tipos corresponden a las variantes de fantasma.
 	match enemy_type_index:
 		0:
 			return fantasma_lento_frames
@@ -580,11 +583,18 @@ func _get_ghost_frames(enemy_type_index: int) -> SpriteFrames:
 			return fantasma_lento_noche_frames
 		3:
 			return fantasma_veloz_noche_frames
+		4:
+			return vampire_frames
+		5:
+			return vampire2_frames
+		6:
+			return vampire3_frames
 
-	# Compatibilidad si el fantasma lento está configurado en otro índice.
 	if enemy_type_index == ghost_enemy_type_index:
 		return fantasma_lento_frames
+
 	return null
+
 
 
 func _sprite_size_for(enemy_type_index: int) -> float:
