@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3 uid="uid://c4e8jy6jkduqc"]
+
+[ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="1_4q8jx"]
+
+[resource]
+script = ExtResource("1_4q8jx")
+display_name = "Slime1"
+max_health = 12.0
+speed = 90.0
+contact_damage = 4.0
+xp_value = 3
+size = 24.0
+color = Color(0.5019608, 0, 0.5019608, 1)
+spawn_weight = 1.5
+metadata/_custom_type_script = "uid://bxe00x1cyqlbg"

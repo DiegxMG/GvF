@@ -46,6 +46,14 @@ class OutlineLayer extends Node2D:
 @export var vampire_frames: SpriteFrames
 @export var vampire2_frames: SpriteFrames
 @export var vampire3_frames: SpriteFrames
+@export var slime1_frames: SpriteFrames
+@export var slime2_frames: SpriteFrames
+@export var slime3_frames: SpriteFrames
+@export var plant1_frames: SpriteFrames
+@export var plant2_frames: SpriteFrames
+@export var plant3_frames: SpriteFrames
+
+
 
 # Índice original del fantasma lento en Enemy Types.
 @export var ghost_enemy_type_index: int = 0
@@ -125,6 +133,14 @@ var _pos := PackedVector2Array()
 var _hp := PackedFloat32Array()
 var _type := PackedInt32Array()
 var _tier := PackedByteArray()
+# Estado de la animación de daño de cada enemigo.
+var _hurt_until := PackedFloat32Array()
+var _hurt_started := PackedFloat32Array()
+
+# Efectos visuales de muerte independientes de los enemigos activos.
+# Así se mantienen intactos el daño, la experiencia y las monedas.
+var _death_effects: Array[Dictionary] = []
+const MAX_DEATH_EFFECTS := 100
 
 var _count: int = 0
 var _time: float = 0.0
@@ -152,6 +168,8 @@ func _ready() -> void:
 	_hp.resize(max_enemies)
 	_type.resize(max_enemies)
 	_tier.resize(max_enemies)
+	_hurt_until.resize(max_enemies)
+	_hurt_started.resize(max_enemies)
 
 	_build_outline_layer()
 
@@ -226,6 +244,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_time += delta
+	_update_death_effects()
 
 	var target := player.global_position
 
@@ -235,6 +254,13 @@ func _physics_process(delta: float) -> void:
 
 	queue_redraw()
 	_outline_layer.queue_redraw()
+
+
+# Retira efectos de muerte una vez que terminan sus fotogramas.
+func _update_death_effects() -> void:
+	for i in range(_death_effects.size() - 1, -1, -1):
+		if _time >= float(_death_effects[i]["until"]):
+			_death_effects.remove_at(i)
 
 
 # -----------------------------------------------------------------
@@ -304,6 +330,8 @@ func _spawn_enemy(center: Vector2) -> void:
 	_hp[_count] = enemy_types[t].max_health * _health_multiplier() * _tv(tier_health_mult, tier, 1.0)
 	_type[_count] = t
 	_tier[_count] = tier
+	_hurt_until[_count] = 0.0
+	_hurt_started[_count] = 0.0
 
 	_count += 1
 
@@ -488,7 +516,11 @@ func _draw() -> void:
 			if tier_color.a > 0.0:
 				tint = tint.lerp(Color(tier_color.r, tier_color.g, tier_color.b, alpha), tint_amount)
 
-			if _prepare_ghost_sprite(p, center, frames, _sprite_size_for(_type[i])):
+			var target_size := _sprite_size_for(_type[i])
+			var prepared := _prepare_hurt_sprite(i, frames, target_size)
+			if not prepared:
+				prepared = _prepare_ghost_sprite(p, center, frames, target_size)
+			if prepared:
 				_draw_prepared_sprite(p, tint)
 
 			continue
@@ -511,6 +543,8 @@ func _draw() -> void:
 			),
 			color
 		)
+
+	_draw_death_effects(center, view_half)
 
 
 # Pinta los marcos de color de los fantasmas con sprite. Lo llama OutlineLayer.
@@ -573,6 +607,7 @@ func _draw_outlines(canvas: CanvasItem) -> void:
 # -----------------------------------------------------------------
 
 
+
 func _get_ghost_frames(enemy_type_index: int) -> SpriteFrames:
 	match enemy_type_index:
 		0:
@@ -589,6 +624,19 @@ func _get_ghost_frames(enemy_type_index: int) -> SpriteFrames:
 			return vampire2_frames
 		6:
 			return vampire3_frames
+		7:
+			return slime1_frames
+		8:
+			return slime2_frames
+		9:
+			return slime3_frames
+		10:
+			return plant1_frames
+		11:
+			return plant2_frames
+		12:
+			return plant3_frames
+
 
 	if enemy_type_index == ghost_enemy_type_index:
 		return fantasma_lento_frames
@@ -597,10 +645,80 @@ func _get_ghost_frames(enemy_type_index: int) -> SpriteFrames:
 
 
 
+
 func _sprite_size_for(enemy_type_index: int) -> float:
 	if enemy_type_index >= 0 and enemy_type_index < sprite_sizes.size():
 		return sprite_sizes[enemy_type_index]
 	return 56.0
+
+
+# Conserva la animación death como efecto visual después de eliminar al enemigo.
+func _start_death_effect(i: int) -> void:
+	var frames := _get_ghost_frames(_type[i])
+	if frames == null or not frames.has_animation(&"death"):
+		return
+
+	var count := frames.get_frame_count(&"death")
+	var fps := frames.get_animation_speed(&"death")
+	if count <= 0 or fps <= 0.0:
+		return
+
+	if _death_effects.size() >= MAX_DEATH_EFFECTS:
+		_death_effects.remove_at(0)
+
+	_death_effects.append({
+		"position": _pos[i],
+		"frames": frames,
+		"size": _sprite_size_for(_type[i]),
+		"started": _time,
+		"until": _time + float(count) / fps,
+		"fps": fps,
+		"count": count
+	})
+
+
+# Dibuja la muerte sin mantener al enemigo activo ni bloquear sus recompensas.
+func _draw_death_effects(center: Vector2, view_half: Vector2) -> void:
+	for effect in _death_effects:
+		var p: Vector2 = effect["position"]
+		if absf(p.x - center.x) > view_half.x or absf(p.y - center.y) > view_half.y:
+			continue
+
+		var frames: SpriteFrames = effect["frames"]
+		var elapsed: float = maxf(_time - float(effect["started"]), 0.0)
+		var frame_index: int = mini(int(elapsed * float(effect["fps"])), int(effect["count"]) - 1)
+		var texture: Texture2D = frames.get_frame_texture(&"death", frame_index)
+		if texture == null:
+			continue
+
+		var texture_size := texture.get_size()
+		var size: float = effect["size"]
+		var drawn_size := texture_size * (size / maxf(maxf(texture_size.x, texture_size.y), 1.0))
+		draw_texture_rect(texture, Rect2(p - drawn_size * 0.5, drawn_size), false)
+
+
+# Prepara la animación hurt para un enemigo que acaba de recibir daño.
+# Si el recurso no tiene hurt, se mantiene la animación de movimiento.
+func _prepare_hurt_sprite(i: int, frames: SpriteFrames, target_size: float) -> bool:
+	if _time >= _hurt_until[i] or not frames.has_animation(&"hurt"):
+		return false
+
+	var count := frames.get_frame_count(&"hurt")
+	var fps := frames.get_animation_speed(&"hurt")
+	if count <= 0 or fps <= 0.0:
+		return false
+
+	var elapsed := maxf(_time - _hurt_started[i], 0.0)
+	var frame_index := mini(int(elapsed * fps), count - 1)
+	var texture := frames.get_frame_texture(&"hurt", frame_index)
+	if texture == null:
+		return false
+
+	var texture_size := texture.get_size()
+	_sp_texture = texture
+	_sp_size = texture_size * (target_size / maxf(maxf(texture_size.x, texture_size.y), 1.0))
+	_sp_flip = false
+	return true
 
 
 # Elige la animación y el cuadro del fantasma según hacia dónde está el jugador y
@@ -794,6 +912,15 @@ func damage_enemy(i: int, amount: float) -> void:
 
 	if _hp[i] <= 0.0:
 		kill_enemy(i)
+		return
+
+	var frames := _get_ghost_frames(_type[i])
+	if frames != null and frames.has_animation(&"hurt"):
+		var count := frames.get_frame_count(&"hurt")
+		var fps := frames.get_animation_speed(&"hurt")
+		if count > 0 and fps > 0.0:
+			_hurt_started[i] = _time
+			_hurt_until[i] = _time + float(count) / fps
 
 
 func kill_enemy(i: int) -> void:
@@ -812,6 +939,7 @@ func kill_enemy(i: int) -> void:
 
 	var coin_chance := stats.coin_chance * _tv(tier_coin_mult, tier, 1.0)
 
+	_start_death_effect(i)
 	enemy_killed.emit(_pos[i], xp)
 	enemy_died.emit(_pos[i], stats, xp, coin_chance, tier)
 
@@ -825,3 +953,5 @@ func _remove_enemy(i: int) -> void:
 	_hp[i] = _hp[_count]
 	_type[i] = _type[_count]
 	_tier[i] = _tier[_count]
+	_hurt_until[i] = _hurt_until[_count]
+	_hurt_started[i] = _hurt_started[_count]

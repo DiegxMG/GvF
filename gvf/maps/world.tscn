@@ -22,14 +22,26 @@
 [ext_resource type="SpriteFrames" uid="uid://cx4hi81o12ky0" path="res://assets/sprites/vampire/vampire3/vampire3_frames.tres" id="12_8wibs"]
 [ext_resource type="Script" uid="uid://c6xirb8auqe33" path="res://ui/hud/hud_top_bar.gd" id="12_ntnhp"]
 [ext_resource type="Script" uid="uid://bykype2r8cifu" path="res://systems/run_stats.gd" id="12_qc5wv"]
+[ext_resource type="SpriteFrames" uid="uid://dcw6yppe31elm" path="res://assets/sprites/slimes/slime1/slime1_frames.tres" id="13_8wibs"]
 [ext_resource type="Script" uid="uid://cvontvgr1603k" path="res://ui/TouchJoystick.gd" id="13_c4v46"]
+[ext_resource type="SpriteFrames" uid="uid://lknrgdwtandu" path="res://assets/sprites/slimes/slime2/slime2_frames.tres" id="14_2rjxo"]
+[ext_resource type="SpriteFrames" uid="uid://0jawkg7fba0a" path="res://assets/sprites/slimes/slime3/slime3_frames.tres" id="15_bbxr2"]
 [ext_resource type="Script" uid="uid://bf5blok2tn2o0" path="res://ui/upgrade_menu.gd" id="15_vj61e"]
+[ext_resource type="SpriteFrames" uid="uid://dr8f054ydf4vk" path="res://assets/sprites/plant/plant1/plant1_frames.tres" id="16_dhmqd"]
+[ext_resource type="SpriteFrames" uid="uid://b2tvq4eyylrv1" path="res://assets/sprites/plant/plant2/plant2_frames.tres" id="17_2j4fc"]
 [ext_resource type="Resource" uid="uid://b05qf62a42ypv" path="res://resources/stats_enemies/vampire.tres" id="18_jwm57"]
 [ext_resource type="Script" uid="uid://cpc6l1p7asfc1" path="res://modes/arcade/arcade_session.gd" id="18_vj61e"]
+[ext_resource type="SpriteFrames" uid="uid://b5yyotg617srl" path="res://assets/sprites/plant/plant3/plant3_frames.tres" id="18_yo0i6"]
 [ext_resource type="PackedScene" uid="uid://bisv8xl61f1ts" path="res://ui/pause_menu/PauseMenu.tscn" id="19_7mbce"]
 [ext_resource type="Resource" uid="uid://b5bfb8acm0cf" path="res://resources/stats_enemies/vampire2.tres" id="19_kddec"]
 [ext_resource type="Resource" uid="uid://syft7sgi74q3" path="res://resources/stats_enemies/vampire3.tres" id="20_rssya"]
+[ext_resource type="Resource" uid="uid://c4e8jy6jkduqc" path="res://resources/stats_enemies/slime1.tres" id="21_wxe6n"]
+[ext_resource type="Resource" uid="uid://ci5qkp04bxc61" path="res://resources/stats_enemies/slime2.tres" id="23_kddec"]
+[ext_resource type="Resource" uid="uid://cc4awb3r3oypw" path="res://resources/stats_enemies/slime3.tres" id="24_rssya"]
 [ext_resource type="Script" uid="uid://b4bijm2pxe6px" path="res://maps/forest_map.gd" id="24_xqrul"]
+[ext_resource type="Resource" uid="uid://buiammp3fg0q2" path="res://resources/stats_enemies/plant1.tres" id="27_cxqla"]
+[ext_resource type="Resource" uid="uid://bnejfgy17bmga" path="res://resources/stats_enemies/plant2.tres" id="28_7grhh"]
+[ext_resource type="Resource" uid="uid://cgx1khcph4egf" path="res://resources/stats_enemies/plant3.tres" id="29_s8dyv"]
 
 [node name="World" type="Node2D" unique_id=29999533]
 
@@ -53,9 +65,15 @@ fantasma_veloz_noche_frames = ExtResource("7_yg8gp")
 vampire_frames = ExtResource("10_v2ylt")
 vampire2_frames = ExtResource("11_wxe6n")
 vampire3_frames = ExtResource("12_8wibs")
+slime1_frames = ExtResource("13_8wibs")
+slime2_frames = ExtResource("14_2rjxo")
+slime3_frames = ExtResource("15_bbxr2")
+plant1_frames = ExtResource("16_dhmqd")
+plant2_frames = ExtResource("17_2j4fc")
+plant3_frames = ExtResource("18_yo0i6")
 player = NodePath("../Player")
-enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2"), ExtResource("6_op0be"), ExtResource("7_w3kvc"), ExtResource("18_jwm57"), ExtResource("19_kddec"), ExtResource("20_rssya")])
-sprite_sizes = Array[float]([52.0, 64.0, 76.0, 76.0, 128.0, 128.0, 160.0])
+enemy_types = Array[ExtResource("3_41f5y")]([ExtResource("4_0n1be"), ExtResource("5_q1kd2"), ExtResource("6_op0be"), ExtResource("7_w3kvc"), ExtResource("18_jwm57"), ExtResource("19_kddec"), ExtResource("20_rssya"), ExtResource("21_wxe6n"), ExtResource("23_kddec"), ExtResource("24_rssya"), ExtResource("27_cxqla"), ExtResource("28_7grhh"), ExtResource("29_s8dyv")])
+sprite_sizes = Array[float]([52.0, 64.0, 76.0, 76.0, 128.0, 128.0, 160.0, 128.0, 128.0, 128.0, 90.0, 80.0, 96.0])
 
 [node name="Player" parent="." unique_id=1565919614 instance=ExtResource("2_e0ubd")]
 
