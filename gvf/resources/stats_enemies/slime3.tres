@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3 uid="uid://cc4awb3r3oypw"]
+
+[ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="1_tyw0f"]
+
+[resource]
+script = ExtResource("1_tyw0f")
+display_name = "Slime3"
+max_health = 28.0
+speed = 75.0
+contact_damage = 7.0
+xp_value = 6
+size = 34.0
+color = Color(0.5019608, 0, 0.5019608, 1)
+xp_drop_chance = 0.9
+coin_chance = 0.2
+first_day = 3
+spawn_weight = 0.8
+metadata/_custom_type_script = "uid://bxe00x1cyqlbg"

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3 uid="uid://b5bfb8acm0cf"]
+
+[ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="1_wqfvh"]
+
+[resource]
+script = ExtResource("1_wqfvh")
+display_name = "Vampiro veloz"
+speed = 170.0
+xp_value = 5
+size = 24.0
+active_time = 2
+first_day = 3
+spawn_weight = 0.5
+metadata/_custom_type_script = "uid://bxe00x1cyqlbg"

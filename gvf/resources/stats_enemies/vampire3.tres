@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3 uid="uid://syft7sgi74q3"]
+
+[ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="1_xqkmc"]
+
+[resource]
+script = ExtResource("1_xqkmc")
+display_name = "Vampiro tanque"
+max_health = 35.0
+speed = 75.0
+contact_damage = 8.0
+xp_value = 8
+size = 30.0
+active_time = 2
+first_day = 4
+spawn_weight = 0.4
+metadata/_custom_type_script = "uid://bxe00x1cyqlbg"

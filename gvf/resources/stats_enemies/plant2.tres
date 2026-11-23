@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3 uid="uid://bnejfgy17bmga"]
+
+[ext_resource type="Script" uid="uid://bxe00x1cyqlbg" path="res://resources/stats_enemies/enemy_stats.gd" id="1_167mr"]
+
+[resource]
+script = ExtResource("1_167mr")
+display_name = "plant2"
+max_health = 24.0
+speed = 95.0
+contact_damage = 6.0
+xp_value = 5
+size = 32.0
+color = Color(0.5019608, 0, 0.5019608, 1)
+xp_drop_chance = 0.9
+coin_chance = 0.15
+first_day = 2
+metadata/_custom_type_script = "uid://bxe00x1cyqlbg"
